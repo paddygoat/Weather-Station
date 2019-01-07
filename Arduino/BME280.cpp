@@ -14,19 +14,17 @@ void setupBME280()
 void BME280Readings()
 {
   Serial.print("Humidity: ");
-  Serial.print(mySensor.readFloatHumidity(), 0);
+  Serial.println(mySensor.readFloatHumidity(), 0);
 
-  Serial.print(" Pressure: ");
-  Serial.print(mySensor.readFloatPressure(), 0);
+  Serial.print("Pressure: ");
+  Serial.println(mySensor.readFloatPressure(), 0);
 
-  Serial.print(" Alt: ");
+  Serial.print("Alt: ");
   //Serial.print(mySensor.readFloatAltitudeMeters(), 1);
-  Serial.print(mySensor.readFloatAltitudeFeet(), 1);
+  Serial.println(mySensor.readFloatAltitudeFeet(), 1);
 
-  Serial.print(" Temp: ");
+  Serial.print("Temp: ");
   //Serial.print(mySensor.readTempC(), 2);
-  Serial.print(mySensor.readTempC(), 2);
-
-  Serial.println();
+  Serial.println(mySensor.readTempC(), 2);
 
 }
