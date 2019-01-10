@@ -2,9 +2,8 @@
 #include "counters.h"
 
 int frequency;
-//int z =-1;
 float correction =0;
-float runningTotal =0.1;
+double runningTotal =0;
 
 float knots =0.00;
 float knotsMax =0.00;
@@ -33,18 +32,34 @@ void windSpeedSetup()
 void windSpeed()
 {
   z++;
-  frequency = 500000/pulseIn(4,HIGH,5000000);
+  frequency = 500000/pulseIn(5,HIGH,5000000);
   if (frequency < 0){frequency=0;}    
   int correction =0;
   int adjustments();
-  knots = (frequency * calibration /10) + correction; 
+  
+  knots = (frequency * calibration /10) + correction;
+ // if(knots > (knotsMax*3)  )                                // Filter out randon large readings.
+//  {
+ //   knots = knotsAv;
+//  }
   if (knots > knotsMax)
   {
     knotsMax = knots;
   }
+  
   runningTotal = runningTotal + knots;
+  if(z==1)
+  {
+    runningTotal = knots;                              // Reset running total and max wind gust (knotsMax).
+    knotsMax = knots;
+  }
+  
   knotsAv = runningTotal / z;
-
+  //Serial.print("Z: ");Serial.print(z);  
+  //Serial.print("    Av wind speed: ");Serial.print(knotsAv);  
+  //Serial.print("    Max wind gust: ");Serial.println(knotsMax);   
+  //Serial.print("   Running total: ");Serial.println(runningTotal);
+  //Serial.print("Z: ");Serial.println(z);
 }
 void adjustments()
 {   

@@ -7,9 +7,13 @@
 #include "counters.h"
 #include <Arduino.h>
 #include "batteryVolts.h"
+#include "windSpeed.h"
+#include "windVane.h"
 
 unsigned long previousMillisSensors = 0;
 const long intervalSensors = 10000;              // Interval to take reading on all sensors other than wind.
+unsigned long previousMillisWind = 0;
+const long intervalWind = 200;                  // Interval to take reading on wind sensors.
 const byte interruptPinA = 1;
 int rainValue = 0;
 int rainValuex2 =0;
@@ -62,6 +66,7 @@ void setup()
   setupLEDs();
   setupBME280();
   soilSetup();
+  setupWindVane();
   tone(3,1000,100);
   
 } // setup
@@ -83,8 +88,18 @@ void loop()
     soil();            // Read soil moisture.
     rainValue = rainValuex2/2;
     Serial.print("Rain Value: ");Serial.println(rainValue);
+    Serial.print("Z: ");Serial.println(z);  
+    Serial.print("Av wind speed: ");Serial.print(knotsAv);  
+    Serial.print("    Max wind gust: ");Serial.println(knotsMax);  
+    windVane();
+    Serial.println("");
   }
-
+  if (currentMillis - previousMillisWind >= intervalWind)
+  {
+    previousMillisWind = currentMillis;
+    windSpeed();
+    counter();
+  }
 } // loop
 
 

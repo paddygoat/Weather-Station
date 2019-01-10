@@ -1,4 +1,5 @@
-#include <Arduino.h>
+#include <Arduino.h> 
+#include "counters.h"    // This is get value of z.
 
 int addingDirection[]=
   {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,
@@ -13,8 +14,9 @@ int addingDirection[]=
 int degree =0;
 const int analogInPin = A0;  // Analog input pin that the vane potentiometer is attached to.
 int p=0;
-int outputValue =0;
-float maxSensorValue =1020.0001;
+float outputValue =0;
+//float maxSensorValue =1020.0001;
+float maxSensorValue =445.0001;
 float minSensorValue = 0.0001;
 int finalDirection=0;
 float rawDirection =0;
@@ -24,7 +26,7 @@ float vaneValue =0.00;
 
 void setupWindVane()
 {
-  pinMode (12,OUTPUT);         // This provides short pulses of power to the wind vane from pin 12 for power saving.
+  pinMode (6,OUTPUT);         // This provides short pulses of power to the wind vane from pin 12 for power saving.
   while (degree<362)           // Set all 362 values to zero.
   {
     addingDirection[degree] = 0;
@@ -41,7 +43,7 @@ void windVane()
   while (g<2)                             // Get 2 quick readings.
     {
     g++;  
-    digitalWrite(12, HIGH);
+    digitalWrite(6, HIGH);
     delay(10);
     // read the analog in value:
     adc0 = analogRead(A0);
@@ -93,7 +95,7 @@ void windVane()
     sensorValue = (sensorValue2/g);                     // We're not in the hovering zone as no sensorValue has been picked up yet so we make a normal calculation of the mean.
     }
     
-  digitalWrite(12, LOW);
+  digitalWrite(6, LOW);
   delay(50);                            // set this to 500 so total delay = 1 second.
 
   
@@ -131,18 +133,18 @@ void windVane()
   rawDirection=360;
   }
 ////////////////////////////////////////////////////////////////////////////////////////////////////// 
-  //Serial.print("sensor = ");
-  //Serial.print(sensorValue);
-  //Serial.print("\t output = ");
-  //Serial.print(outputValue,2);
-  //Serial.print("\t adjusted output = ");
-  //Serial.print(rawDirection,2);
-  //Serial.print("\t Max sensor value = ");
-  //Serial.print(maxSensorValue,2);
-  //Serial.print("\t Min sensor value = ");
-  //Serial.print(minSensorValue,2);
-  //Serial.print("\t n = ");
-  //Serial.println(p);  
+  Serial.print("sensor = ");
+  Serial.print(sensorValue);
+  Serial.print("\t output = ");
+  Serial.print(outputValue,2);
+  Serial.print("\t adjusted output = ");
+  Serial.print(rawDirection,2);
+  Serial.print("\t Max sensor value = ");
+  Serial.print(maxSensorValue,2);
+  Serial.print("\t Min sensor value = ");
+  Serial.print(minSensorValue,2);
+  Serial.print("\t n = ");
+  Serial.println(p);  
 
   digitalWrite(12, LOW);
 
@@ -178,20 +180,39 @@ if (finalDirection==359 || finalDirection==360 || finalDirection==1)
 {
   finalDirection=360;
 }
-  //Serial.print("Mode size = ");
-  //Serial.print(modeSize);
-  //Serial.print("\t Degree = ");
-  //Serial.print(degree);
+  Serial.print("Final Direction =  ");
+  Serial.print(finalDirection);
+  Serial.print("  Mode size = ");
+  Serial.print(modeSize);
+  Serial.print("\t Degree = ");
+  Serial.print(degree);
   //Serial.print("\t Final Mode Direction = ");
-  Serial.print("Final Direction =  ");Serial.println(finalDirection);
-  //Serial.print("\t Adding direction[degree] = ");
-  //Serial.println(addingDirection[degree]);
-  //Serial.print("Small = ");
-  //Serial.println(small);
-  //Serial.print("Big = ");
-  //Serial.println(big);
+  Serial.print("\t Adding direction[degree] = ");
+  Serial.print(addingDirection[degree]);
+  Serial.print("  Small = ");
+  Serial.print(small);
+  Serial.print("  Big = ");
+  Serial.print(big);
+  Serial.print("  Z = ");
+  Serial.println(z);
   // variation();  
   vaneValue=finalDirection;
+  if(z<50)                      // When z < 50 indicates that successful callback from server has been made so reset everything.
+  {
+    sensorValue=0;
+    sensorValue2=0;
+    sensorValue3=0; 
+    sensorValue4=0;     
+    big =0;
+    small =0;   
+    g=0;
+    modeSize=0;
+    while (degree<362)           // Set all 362 values to zero.
+    {
+      addingDirection[degree] = 0;
+      degree++;
+    }
+  }
   //Serial.println(""); 
 
 // 30 days = 2592000 seconds
