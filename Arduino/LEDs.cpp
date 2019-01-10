@@ -1,4 +1,4 @@
-#include "Mega.h"
+
 #include <Arduino.h>
 
   int ledStateYellow = LOW;
@@ -46,18 +46,16 @@ void flashYellowLED()
     }
     digitalWrite(9, ledStateBlue);
   }
-  
+}
+void flashRedLED()
+{
+  digitalWrite(10, HIGH);
+  previousMillisRed =  millis();
+  unsigned long currentMillis = millis();
   if (currentMillis - previousMillisRed >= intervalRed) 
   {
     previousMillisRed = currentMillis;
-    if (ledStateRed == LOW) {
-      ledStateRed = HIGH;
-    }
-    else 
-    {
-      ledStateRed = LOW;
-    }
-    digitalWrite(10, ledStateRed);
+    digitalWrite(10, LOW);
   } 
 }
 

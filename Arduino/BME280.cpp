@@ -5,6 +5,7 @@ BME280 mySensor;
 void setupBME280()
 {
   Wire.begin();
+  mySensor.setI2CAddress(0x76);           // This could possibly also be (0x77)
   if (mySensor.beginI2C() == false) //Begin communication over I2C
   {
     Serial.println("The sensor did not respond. Please check wiring.");
@@ -23,7 +24,7 @@ void BME280Readings()
   //Serial.print(mySensor.readFloatAltitudeMeters(), 1);
   Serial.println(mySensor.readFloatAltitudeFeet(), 1);
 
-  Serial.print("Temp: ");
+  Serial.print("BME 260 temp: ");
   //Serial.print(mySensor.readTempC(), 2);
   Serial.println(mySensor.readTempC(), 2);
 
