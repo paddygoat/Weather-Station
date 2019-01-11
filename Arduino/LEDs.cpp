@@ -3,13 +3,10 @@
 
   int ledStateYellow = LOW;
   int ledStateBlue = LOW;
-  int ledStateRed = LOW;
   unsigned long previousMillisYellow = 0;
   unsigned long previousMillisBlue = 0;
-  unsigned long previousMillisRed = 0;
   const long intervalYellow = 1000;
   const long intervalBlue = 1900;
-  const long intervalRed = 2700;
 
 void setupLEDs()
 {
@@ -49,14 +46,14 @@ void flashYellowLED()
 }
 void flashRedLED()
 {
-  digitalWrite(10, HIGH);
-  previousMillisRed =  millis();
-  unsigned long currentMillis = millis();
-  if (currentMillis - previousMillisRed >= intervalRed) 
-  {
-    previousMillisRed = currentMillis;
-    digitalWrite(10, LOW);
-  } 
+  //digitalWrite(10, HIGH);
+  //previousMillisRed =  millis();
+  //unsigned long currentMillis = millis();
+  //if (currentMillis - previousMillisRed >= intervalRed) 
+  //{
+  //  previousMillisRed = currentMillis;
+  //  digitalWrite(10, LOW);
+  //} 
 }
 
 

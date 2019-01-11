@@ -1,6 +1,16 @@
 #include <Arduino.h> 
 #include "counters.h"    // This is get value of z.
 
+int ledStateRed = LOW;
+unsigned long previousMillisRed = 0;
+const long intervalRed = 50;
+int sensorValue=0;
+int sensorValue2=0;
+int sensorValue3=0; 
+int sensorValue4=0;     
+int big =0;
+int small =0;  
+
 int addingDirection[]=
   {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,
   40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,
@@ -22,11 +32,12 @@ int finalDirection=0;
 float rawDirection =0;
 int c=0;
 int modeSize=0;
-float vaneValue =0.00;
+int vaneValue =0;
 
 void setupWindVane()
 {
-  pinMode (6,OUTPUT);         // This provides short pulses of power to the wind vane from pin 12 for power saving.
+  pinMode(10, OUTPUT);         // Red LED
+  pinMode (6, OUTPUT);         // This provides short pulses of power to the wind vane from pin 12 for power saving.
   while (degree<362)           // Set all 362 values to zero.
   {
     addingDirection[degree] = 0;
@@ -36,36 +47,70 @@ void setupWindVane()
 void windVane()
 {
 /////////////////////////////////////////////// Wind vane stuff:
+  digitalWrite(10, LOW); 
   int g=0;
   int adc0; 
   p++;
   
-  while (g<2)                             // Get 2 quick readings.
+  int ledStateRed = LOW;
+  digitalWrite(10, LOW); 
+  digitalWrite(6, HIGH);                    // Powers the wind vane potentiometer.
+  while (g<2)                               // Get 2 quick readings.
+  {
+    unsigned long currentMillis = millis();
+    if (currentMillis - previousMillisRed >= intervalRed) 
     {
+      previousMillisRed = currentMillis;
+      if (ledStateRed == LOW)
+      {
+        ledStateRed = HIGH;
+      }
+      else 
+      {
+        ledStateRed = LOW;
+      }
+    digitalWrite(10, ledStateRed);         // Red LED flashes according to intervalRed.
     g++;  
-    digitalWrite(6, HIGH);
-    delay(10);
+    digitalWrite(6, HIGH);                 // Powers the wind vane potentiometer.
+    //delay(10);
     // read the analog in value:
     adc0 = analogRead(A0);
-    delay(100);
-    } 
+    //delay(100);
+    }                                                 // End of Millis timer.
+  }                                                   // End of while loop.
     
-    int sensorValue=0;
-    int sensorValue2=0;
-    int sensorValue3=0; 
-    int sensorValue4=0;     
-    int big =0;
-    int small =0;   
+    sensorValue=0;
+    sensorValue2=0;
+    sensorValue3=0; 
+    sensorValue4=0;     
+    big =0;
+    small =0;
     g=0;
-    
-  while (g<11)                             // Get 10 quick readings. Must be an odd number or big could equal small.
-    {
-    g++;  
-    // read the analog in value:
-    adc0 = analogRead(A0);
-    sensorValue2 = sensorValue2 + adc0;
 
-    
+  //previousMillisRed =  millis();
+  ledStateRed = LOW;
+  digitalWrite(10, LOW);  
+  
+  while (g<11)                                // Get 10 quick readings. Must be an odd number or big could equal small.
+    {
+    unsigned long currentMillis = millis();
+    if (currentMillis - previousMillisRed >= intervalRed) 
+    {
+      previousMillisRed = currentMillis;
+      if (ledStateRed == LOW)
+      {
+       ledStateRed = HIGH;
+      }
+      else 
+      {
+        ledStateRed = LOW;
+      }
+      digitalWrite(10, ledStateRed);         // Red LED flashes according to intervalRed.
+      g++;  
+      // read the analog in value:
+      adc0 = analogRead(A0);
+      sensorValue2 = sensorValue2 + adc0;
+
 // This bit of code below takes care of the instance where the weather vane is hovering around north (hovering zone) and picking up big values and small values in the same batch of 11:
 // Total range is about 0 to 24000.
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////                                                              
@@ -88,17 +133,14 @@ void windVane()
        sensorValue = sensorValue4 / small;
       }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
-    delay(50);
-    }                                                   // End of while loop.
+    }                                                 // End of Millis timer.
+  }                                                   // End of while loop.
+  digitalWrite(6, LOW);                               // Powers down the wind vane potentiometer.
+  digitalWrite(10, LOW);  
   if (sensorValue == 0)                                 
-    {
-    sensorValue = (sensorValue2/g);                     // We're not in the hovering zone as no sensorValue has been picked up yet so we make a normal calculation of the mean.
-    }
-    
-  digitalWrite(6, LOW);
-  delay(50);                            // set this to 500 so total delay = 1 second.
-
-  
+  {
+    sensorValue = (sensorValue2/g);                    // We're not in the hovering zone as no sensorValue has been picked up yet so we make a normal calculation of the mean.
+  }  
 
   // assume that dead band starts at 356.5 and ends at 0
   // and values of zero correspond to 360 or 0 degrees:
@@ -133,20 +175,6 @@ void windVane()
   rawDirection=360;
   }
 ////////////////////////////////////////////////////////////////////////////////////////////////////// 
-  Serial.print("sensor = ");
-  Serial.print(sensorValue);
-  Serial.print("\t output = ");
-  Serial.print(outputValue,2);
-  Serial.print("\t adjusted output = ");
-  Serial.print(rawDirection,2);
-  Serial.print("\t Max sensor value = ");
-  Serial.print(maxSensorValue,2);
-  Serial.print("\t Min sensor value = ");
-  Serial.print(minSensorValue,2);
-  Serial.print("\t n = ");
-  Serial.println(p);  
-
-  digitalWrite(12, LOW);
 
  degree = (int)rawDirection;
 
@@ -180,21 +208,6 @@ if (finalDirection==359 || finalDirection==360 || finalDirection==1)
 {
   finalDirection=360;
 }
-  Serial.print("Final Direction =  ");
-  Serial.print(finalDirection);
-  Serial.print("  Mode size = ");
-  Serial.print(modeSize);
-  Serial.print("\t Degree = ");
-  Serial.print(degree);
-  //Serial.print("\t Final Mode Direction = ");
-  Serial.print("\t Adding direction[degree] = ");
-  Serial.print(addingDirection[degree]);
-  Serial.print("  Small = ");
-  Serial.print(small);
-  Serial.print("  Big = ");
-  Serial.print(big);
-  Serial.print("  Z = ");
-  Serial.println(z);
   // variation();  
   vaneValue=finalDirection;
   if(z<50)                      // When z < 50 indicates that successful callback from server has been made so reset everything.
@@ -222,5 +235,33 @@ if (finalDirection==359 || finalDirection==360 || finalDirection==1)
 // In 3 days of northerly winds max sensor value will adjust by as much as 2.592 degrees.
 // During northerly winds the sensor will self calibrate:
 //////////////////////////////////////////////////////////////////////////////////////////////////////  
+  Serial.print("sensor = ");
+  Serial.print(sensorValue);
+  Serial.print("\t output = ");
+  Serial.print(outputValue,2);
+  Serial.print("\t adjusted output = ");
+  Serial.print(rawDirection,2);
+  Serial.print("\t Max sensor value = ");
+  Serial.print(maxSensorValue,2);
+  Serial.print("\t Min sensor value = ");
+  Serial.print(minSensorValue,2);
+  Serial.print("\t n = ");
+  Serial.println(p);  
+
+  Serial.print("Final Direction =  ");
+  Serial.print(finalDirection);
+  Serial.print("  Mode size = ");
+  Serial.print(modeSize);
+  Serial.print("\t Degree = ");
+  Serial.print(degree);
+  //Serial.print("\t Final Mode Direction = ");
+  Serial.print("\t Adding direction[degree] = ");
+  Serial.print(addingDirection[degree]);
+  Serial.print("  Small = ");
+  Serial.print(small);
+  Serial.print("  Big = ");
+  Serial.print(big);
+  Serial.print("  Z = ");
+  Serial.println(z);
 }
 

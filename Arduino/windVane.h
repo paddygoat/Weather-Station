@@ -4,6 +4,6 @@
 extern void setupWindVane();
 extern void windVane();
 
-extern float vaneValue;
+extern int vaneValue;
 
 #endif

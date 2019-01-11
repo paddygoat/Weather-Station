@@ -4,7 +4,7 @@
 
 int moisturePowerPin = A3;
 int sensorPin = A1;    
-int moistureValue = 0;  // variable to store the value coming from the moisture sensor
+int moisture = 0;  // variable to store the value coming from the moisture sensor
 
 
 void soilSetup()
@@ -16,9 +16,9 @@ void soilSetup()
 void soil()
 {
   digitalWrite(moisturePowerPin, HIGH);              // Powers up the moisture sensor for 0.1 seconds to prevent corrosion.
-  moistureValue = (analogRead(sensorPin)*0.120)-9;         // The sensor is calibrated.
+  moisture = (analogRead(sensorPin)*0.120)-9;         // The sensor is calibrated.
   delay (100);
   digitalWrite(moisturePowerPin, LOW);               // Powers down the moisture sensor
-  Serial.print("Soil moisture: "); Serial.print(moistureValue); Serial.println(" %");
+  //Serial.print("Soil moisture: "); Serial.print(moisture); Serial.println(" %");
 }
 

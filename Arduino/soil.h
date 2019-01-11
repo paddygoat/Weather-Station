@@ -4,5 +4,7 @@
 extern void soil();
 extern void soilSetup();
 
+extern int moisture;
+
 
 #endif
