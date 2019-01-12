@@ -4,5 +4,6 @@
 extern void flashYellowLED();
 extern void setupLEDs();
 extern void flashRedLED();
+extern void flashBlueLED();
 
 #endif

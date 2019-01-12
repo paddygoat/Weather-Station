@@ -91,7 +91,7 @@ void windVane()
   ledStateRed = LOW;
   digitalWrite(10, LOW);  
   
-  while (g<11)                                // Get 10 quick readings. Must be an odd number or big could equal small.
+  while (g<11)                                // Get 10 quick readings. Must be an odd number or big could equal small. This while loop currently interferes just like 'delay' would!
     {
     unsigned long currentMillis = millis();
     if (currentMillis - previousMillisRed >= intervalRed) 
