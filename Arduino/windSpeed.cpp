@@ -22,6 +22,8 @@ int knotsDecInt;
 int knotsMaxDecInt;
 int knotsAvDecInt;
 
+int previousKnots =0;
+
 float calibration = 1.0047;    // (46.62 / 46.4)
 
 void windSpeedSetup()
@@ -31,13 +33,27 @@ void windSpeedSetup()
     
 void windSpeed()
 {
-  z++;
   frequency = 500000/pulseIn(5,HIGH,5000000);
   if (frequency < 0){frequency=0;}    
   int correction =0;
   int adjustments();
   
   knots = (frequency * calibration /10) + correction;
+  if (z==0)
+  {
+    previousKnots = knots;
+  }
+  if ((z>-1) && (knots < 10))                             // Filter out some weird readings at low speeds.
+  {
+    if( knots/previousKnots > 2)
+    {
+      knots = previousKnots;
+    }
+    previousKnots = knots;
+  }
+  
+  z++;
+  
  // if(knots > (knotsMax*3)  )                                // Filter out randon large readings.
 //  {
  //   knots = knotsAv;
