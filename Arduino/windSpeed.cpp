@@ -71,6 +71,12 @@ void windSpeed()
   }
   
   knotsAv = runningTotal / z;
+  if(knots > 0)
+  {
+    int beepFreq = ((int)knots * 10)+300;
+    //Serial.print("beepFreq: ");Serial.println(beepFreq); 
+    //tone(3,beepFreq,150);
+  }
   //Serial.print("Z: ");Serial.print(z);  
   //Serial.print("    Av wind speed: ");Serial.print(knotsAv);  
   //Serial.print("    Max wind gust: ");Serial.println(knotsMax);   

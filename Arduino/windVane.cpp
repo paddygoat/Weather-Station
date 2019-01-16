@@ -91,7 +91,7 @@ void windVane()
   ledStateRed = LOW;
   digitalWrite(10, LOW);  
   
-  while (g<11)                                // Get 10 quick readings. Must be an odd number or big could equal small. This while loop currently interferes just like 'delay' would!
+  while (g<5)                                // Get 10 quick readings. Must be an odd number or big could equal small. This while loop currently interferes just like 'delay' would!
     {
     unsigned long currentMillis = millis();
     if (currentMillis - previousMillisRed >= intervalRed) 
@@ -210,13 +210,14 @@ if (finalDirection==359 || finalDirection==360 || finalDirection==1)
 }
   // variation();  
   vaneValue=finalDirection;
-  if(z<50)                      // When z < 50 indicates that successful callback from server has been made so reset everything.
+  if(z<5)                      // When z < 5 indicates that successful callback from server has been made so reset everything.
   {
     sensorValue=0;
     sensorValue2=0;
     sensorValue3=0; 
     sensorValue4=0;     
     big =0;
+    p=0;
     small =0;   
     g=0;
     modeSize=0;
@@ -235,6 +236,7 @@ if (finalDirection==359 || finalDirection==360 || finalDirection==1)
 // In 3 days of northerly winds max sensor value will adjust by as much as 2.592 degrees.
 // During northerly winds the sensor will self calibrate:
 //////////////////////////////////////////////////////////////////////////////////////////////////////  
+  Serial.println("");
   Serial.print("sensor = ");
   Serial.print(sensorValue);
   Serial.print("\t output = ");
@@ -245,7 +247,7 @@ if (finalDirection==359 || finalDirection==360 || finalDirection==1)
   Serial.print(maxSensorValue,2);
   Serial.print("\t Min sensor value = ");
   Serial.print(minSensorValue,2);
-  Serial.print("\t n = ");
+  Serial.print("\t p = ");
   Serial.println(p);  
 
   Serial.print("Final Direction =  ");
