@@ -161,6 +161,7 @@ char message[256];
 bool sx1272 = true;
 
 byte receivedbytes;
+int callBack = 0;
 
 enum sf_t { SF7=7, SF8, SF9, SF10, SF11, SF12 };
 
@@ -181,7 +182,7 @@ sf_t sf = SF7;
 // Set center frequency
 uint32_t  freq = 868000000; // in Mhz! (868.1)
 
-byte hello[32] = "HELLO";
+byte hello[64] = ".......... Transmission was successful!";
 
 void die(const char *s)
 {
@@ -396,24 +397,29 @@ void receivepacket() {
     printf("Results:  \n");
     res = curl_easy_perform(curl);
     printf("\n");
+    
     /* Check for errors */ 
     if(res != CURLE_OK)
     fprintf(stderr, "curl_easy_perform() failed: %s\n",
         curl_easy_strerror(res));
+        
+    if(res == CURLE_OK)
+    {
+      std::cout << "res:   " << res << '\n';
+      callBack = 1;
+      std::cout << "callBack:   " << callBack << '\n';
+    }
  
     /* always cleanup */ 
     curl_easy_cleanup(curl);
   }
 
+
 ///////////////////////////////////////////////////////////////         
             
-            
-            
-            
-            
+   
             
         } // received a message
-      //curlStuff();
     } // dio0=1
 }
 
@@ -474,39 +480,16 @@ void txlora(byte *frame, byte datalen) {
     printf("send: %s\n", frame);
 }
 
-void curlStuff()
-{
-  CURL *curl;
-  CURLcode res;
- 
-  curl = curl_easy_init();
-  if(curl) 
-  {
-    curl_easy_setopt(curl, CURLOPT_URL, "http://www.goatindustries.co.uk");
-    /* example.com is redirected, so we tell libcurl to follow redirection */ 
-    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
- 
-    /* Perform the request, res will get the return code */ 
-    res = curl_easy_perform(curl);
-    /* Check for errors */ 
-    if(res != CURLE_OK)
-    fprintf(stderr, "curl_easy_perform() failed: %s\n",
-        curl_easy_strerror(res));
- 
-    /* always cleanup */ 
-    curl_easy_cleanup(curl);
-  }
-  //return 0;
-}
 
 int main (int argc, char *argv[]) 
 {
+  while(1)
+  {
     if (argc < 2) 
     {
         printf ("Usage: argv[0] sender|rec [message]\n");
         exit(1);
     }
-    //curlStuff();
     wiringPiSetup () ;
     pinMode(ssPin, OUTPUT);
     pinMode(dio0, INPUT);
@@ -516,7 +499,10 @@ int main (int argc, char *argv[])
 
     SetupLoRa();
 
-    if (!strcmp("sender", argv[1])) {
+//  if (!strcmp("sender", argv[1])) 
+    if (callBack == 1) 
+    {
+        printf ("CallBack = 1 and we should be in Tx mode\n");
         opmodeLora();
         // enter standby mode (required for FIFO loading))
         opmode(OPMODE_STANDBY);
@@ -531,9 +517,11 @@ int main (int argc, char *argv[])
         if (argc > 2)
             strncpy((char *)hello, argv[2], sizeof(hello));
 
-        while(1) {
+        while(callBack == 1) 
+        {
+            //delay(5000);         // Allow time for weather station to switch to Rx mode.
             txlora(hello, strlen((char *)hello));
-            delay(5000);
+            callBack = 0;
         }
     } 
     else 
@@ -544,12 +532,12 @@ int main (int argc, char *argv[])
         opmode(OPMODE_RX);
         printf("Listening at SF%i on %.6lf Mhz.\n", sf,(double)freq/1000000);
         printf("------------------\n");
-        while(1) 
+        while(callBack == 0) 
         {
           receivepacket(); 
           delay(1);
         }
      }
-
-    return (0);
+  } // while(1)
+    //return (0);
 }
