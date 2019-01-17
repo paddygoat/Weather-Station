@@ -58,6 +58,11 @@ void setup()
 
 void loop()
 {
+  if ( z==0)
+  {
+    rainValuex2 =0;
+    rainValue =0;
+  }
   onReceive(LoRa.parsePacket());
   //flashYellowLED();
   unsigned long currentMillis = millis();
@@ -72,7 +77,8 @@ void loop()
     rainValue = rainValuex2/2;
     printToSerial();
     //const char webAddress[100] = "http://www.goatindustries.co.uk/weather2/send.php?";
-    String dataString = initiator + "tempout="+BME280Temperature + "&tempsoil="+soilTemp + "&windgust="+knotsMax + "&windspeed="+knotsAv + "&rain="+rainValue + "&moisture="+moisture + "&tempint="+BME280Temperature + "&pressure="+pressure + "&humidity="+humidity + "&volts="+batteryVoltsValue + "&windway="+vaneValue + "&END_OF_MESSAGE";
+    String dataString = "";
+    dataString = initiator + "tempout="+BME280Temperature + "&tempsoil="+soilTemp + "&windgust="+knotsMax + "&windspeed="+knotsAv + "&rain="+rainValue + "&moisture="+moisture + "&tempint="+BME280Temperature + "&pressure="+pressure + "&humidity="+humidity + "&volts="+batteryVoltsValue + "&windway="+vaneValue + "&END_OF_MESSAGE";
     Serial.print("Sending packet: ");
     Serial.print(dataString);
     //Serial.print("  ");
@@ -154,6 +160,8 @@ void onReceive(int packetSize)
       Serial.println("");
       Serial.println(".........................  Call back was successful !!!! .............................");
       z=0;           // Reset the main counter.
+      rainValuex2 =0;
+      rainValue =0;
       tone(3,500,1500);
       windVane();                    // This is here so that wind vane variables get reset quickly.
     }

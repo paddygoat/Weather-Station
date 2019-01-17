@@ -22,7 +22,7 @@ int knotsDecInt;
 int knotsMaxDecInt;
 int knotsAvDecInt;
 
-int previousKnots =0;
+float previousKnots =0;
 
 float calibration = 1.0047;    // (46.62 / 46.4)
 
@@ -39,25 +39,24 @@ void windSpeed()
   int adjustments();
   
   knots = (frequency * calibration /10) + correction;
-  if (z==0)
+  if (z==-1)
   {
     previousKnots = knots;
   }
-  if ((z>-1) && (knots < 10))                             // Filter out some weird readings at low speeds.
+  if (knots < 10)                            // Filter out some weird readings at low speeds.
   {
-    if( knots/previousKnots > 2)
+    if( (knots/previousKnots) > 2)
     {
       knots = previousKnots;
+      Serial.println("..... ERROR DETECTED !! .....");
+      tone(3,1000,10000);
+      delay(10000);
     }
     previousKnots = knots;
   }
   
   z++;
-  
- // if(knots > (knotsMax*3)  )                                // Filter out randon large readings.
-//  {
- //   knots = knotsAv;
-//  }
+
   if (knots > knotsMax)
   {
     knotsMax = knots;
@@ -77,7 +76,9 @@ void windSpeed()
     //Serial.print("beepFreq: ");Serial.println(beepFreq); 
     //tone(3,beepFreq,150);
   }
-  //Serial.print("Z: ");Serial.print(z);  
+  Serial.print("Z: ");Serial.print(z);  
+  Serial.print("    Knots: ");Serial.print(knots);
+  Serial.print("    Previous knots: ");Serial.println(previousKnots);
   //Serial.print("    Av wind speed: ");Serial.print(knotsAv);  
   //Serial.print("    Max wind gust: ");Serial.println(knotsMax);   
   //Serial.print("   Running total: ");Serial.println(runningTotal);
