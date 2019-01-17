@@ -156,12 +156,11 @@ static const int CHANNEL = 0;
 
 char message[256];
 
-
-
 bool sx1272 = true;
 
 byte receivedbytes;
 int callBack = 0;
+std::string str4 = ("");
 
 enum sf_t { SF7=7, SF8, SF9, SF10, SF11, SF12 };
 
@@ -183,6 +182,11 @@ sf_t sf = SF7;
 uint32_t  freq = 868000000; // in Mhz! (868.1)
 
 byte hello[64] = ".......... Transmission was successful!";
+static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp)
+{
+    ((std::string*)userp)->append((char*)contents, size * nmemb);
+    return size * nmemb;
+}
 
 void die(const char *s)
 {
@@ -383,38 +387,43 @@ void receivepacket() {
   
   CURL *curl;
   CURLcode res;
+  std::string readBuffer;
  
   curl = curl_easy_init();
   if(curl) 
   {
+    std::cout << "callBack status:   " << callBack << '\n';
     // Format:  CURLcode curl_easy_setopt(CURL *handle, CURLOPT_URL, char *URL);
     curl_easy_setopt(curl, CURLOPT_URL, ferrets);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
     // http://www.goatindustries.co.uk/weather2/send.php? tempout=14.12&tempsoil=13.75&windgust=13.97&windspeed=3.38&rain=0&moisture=2&tempint=14.12&pressure=100661.89&humidity=69.29&volts=0.34&windway=259&END_OF_MESSAGE
-    /* example.com is redirected, so we tell libcurl to follow redirection */ 
+    /* if URL redirected, so we tell libcurl to follow redirection */ 
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
  
-    /* Perform the request, res will get the return code */ 
-    printf("Results:  \n");
+    /* Perform the request, res will get the return code */
     res = curl_easy_perform(curl);
-    printf("\n");
     
-    /* Check for errors */ 
+    /* Check for errors */
     if(res != CURLE_OK)
     fprintf(stderr, "curl_easy_perform() failed: %s\n",
         curl_easy_strerror(res));
-        
-    if(res == CURLE_OK)
+
+    std::cout << "readBuffer:   " << readBuffer << '\n';
+    std::string str2 ("Success!");
+
+    // Look for the work 'Success!' in readBuffer:
+    std::size_t found2 = readBuffer.find(str2);
+    if (found2!=std::string::npos)
     {
-      std::cout << "res:   " << res << '\n';
+      std::cout << "... Word 'Success!' found at: " << found2 << '\n';
       callBack = 1;
-      std::cout << "callBack:   " << callBack << '\n';
+      std::cout << "callBack status:   " << callBack << '\n';
     }
  
     /* always cleanup */ 
     curl_easy_cleanup(curl);
-  }
-
-
+  }   // if(curl)
 ///////////////////////////////////////////////////////////////         
             
    
