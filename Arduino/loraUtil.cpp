@@ -12,7 +12,7 @@
 void loraSetup()
 {
   Serial.println("LoRa Sender");
-  if (!LoRa.begin(868E6)) 
+  if (!LoRa.begin(869E6))                        // This is where frequency is set.
   {
     Serial.println("Starting LoRa failed!");
     while (1);
