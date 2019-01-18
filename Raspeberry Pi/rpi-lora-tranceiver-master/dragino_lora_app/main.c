@@ -160,6 +160,7 @@ bool sx1272 = true;
 
 byte receivedbytes;
 int callBack = 0;
+int ourData = 0;
 std::string str4 = ("");
 
 enum sf_t { SF7=7, SF8, SF9, SF10, SF11, SF12 };
@@ -342,7 +343,8 @@ boolean receive(char *payload) {
     return true;
 }
 
-void receivepacket() {
+void receivepacket() 
+{
 
     long int SNR;
     int rssicorr;
@@ -363,9 +365,12 @@ void receivepacket() {
                 SNR = ( value & 0xFF ) >> 2;
             }
             
-            if (sx1272) {
+            if (sx1272) 
+            {
                 rssicorr = 139;
-            } else {
+            } 
+            else 
+            {
                 rssicorr = 157;
             }
 
@@ -376,61 +381,73 @@ void receivepacket() {
             printf("\n");
             printf("Payload: %s\n", message);               // message is 256 array char
 
-///////////////////////////////////////////////////////////////        
+/////////////////////////////////////////////////////////////// 
+            std::string str3 ("windspeed"); 
+            std::string messageString = std::string(message);       
+            // Look for the word 'windspeed' in messageString:
+            std::size_t found3 = messageString.find(str3);
+            if (found3!=std::string::npos)
+            {
+              std::cout << "... Word 'windspeed' found at: " << found3 << '\n';
+              ourData = 1;
+              std::cout << "The payload data has been validated .... Status:  " << ourData << '\n';
+            }
+            else
+            {
+              ourData = 0;
+              std::cout << "That was not our data !!!! .... Status:  " << ourData << '\n';
+            }
 
-  std::string rabbits;  
-  std::string initiator = "";
-  std::string URL = "http://www.goatindustries.co.uk/weather2/send.php?";
-  rabbits = initiator + URL + std::string(message);
+            std::string rabbits;  
+            std::string initiator = "";
+            std::string URL = "http://www.goatindustries.co.uk/weather2/send.php?";
+            rabbits = initiator + URL + messageString;
 
-  const char *ferrets = rabbits.c_str();                  // Convert string to constant character.
+            const char *ferrets = rabbits.c_str();                  // Convert string to constant character.
   
-  CURL *curl;
-  CURLcode res;
-  std::string readBuffer;
+            CURL *curl;
+            CURLcode res;
+            std::string readBuffer;
  
-  curl = curl_easy_init();
-  if(curl) 
-  {
-    std::cout << "callBack status:   " << callBack << '\n';
-    // Format:  CURLcode curl_easy_setopt(CURL *handle, CURLOPT_URL, char *URL);
-    curl_easy_setopt(curl, CURLOPT_URL, ferrets);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
-    // http://www.goatindustries.co.uk/weather2/send.php? tempout=14.12&tempsoil=13.75&windgust=13.97&windspeed=3.38&rain=0&moisture=2&tempint=14.12&pressure=100661.89&humidity=69.29&volts=0.34&windway=259&END_OF_MESSAGE
-    /* if URL redirected, so we tell libcurl to follow redirection */ 
-    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+            curl = curl_easy_init();
+            if(  (curl) && (ourData == 1)  )
+            {
+              std::cout << "callBack status:   " << callBack << '\n';
+              // Format:  CURLcode curl_easy_setopt(CURL *handle, CURLOPT_URL, char *URL);
+              curl_easy_setopt(curl, CURLOPT_URL, ferrets);
+              curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+              curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+              // http://www.goatindustries.co.uk/weather2/send.php? tempout=14.12&tempsoil=13.75&windgust=13.97&windspeed=3.38&rain=0&moisture=2&tempint=14.12&pressure=100661.89&humidity=69.29&volts=0.34&windway=259&END_OF_MESSAGE
+              /* if URL redirected, so we tell libcurl to follow redirection */ 
+              curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
  
-    /* Perform the request, res will get the return code */
-    res = curl_easy_perform(curl);
+              /* Perform the request, res will get the return code */
+              res = curl_easy_perform(curl);
     
-    /* Check for errors */
-    if(res != CURLE_OK)
-    fprintf(stderr, "curl_easy_perform() failed: %s\n",
-        curl_easy_strerror(res));
+              /* Check for errors */
+              if(res != CURLE_OK)
+              fprintf(stderr, "curl_easy_perform() failed: %s\n",
+                  curl_easy_strerror(res));
 
-    std::cout << "readBuffer:   " << readBuffer << '\n';
-    std::string str2 ("Success!");
+              std::cout << "readBuffer:   " << readBuffer << '\n';
+              std::string str2 ("Success!");
 
-    // Look for the work 'Success!' in readBuffer:
-    std::size_t found2 = readBuffer.find(str2);
-    if (found2!=std::string::npos)
-    {
-      std::cout << "... Word 'Success!' found at: " << found2 << '\n';
-      callBack = 1;
-      std::cout << "callBack status:   " << callBack << '\n';
-    }
+              // Look for the work 'Success!' in readBuffer:
+              std::size_t found2 = readBuffer.find(str2);
+              if (found2!=std::string::npos)
+              {
+                std::cout << "... Word 'Success!' found at: " << found2 << '\n';
+                callBack = 1;
+                std::cout << "callBack status:   " << callBack << '\n';
+              }
  
-    /* always cleanup */ 
-    curl_easy_cleanup(curl);
-  }   // if(curl)
+              /* always cleanup */ 
+              curl_easy_cleanup(curl);
+            }   // if(curl)
 ///////////////////////////////////////////////////////////////         
-            
-   
-            
         } // received a message
     } // dio0=1
-}
+}  // recievepacket
 
 static void configPower (int8_t pw) {
     if (sx1272 == false) {
