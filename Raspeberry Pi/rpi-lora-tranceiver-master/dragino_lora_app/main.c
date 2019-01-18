@@ -179,7 +179,7 @@ int RST   = 0;
 sf_t sf = SF7;
 
 // Set center frequency
-uint32_t  freq = 868000000; // in Mhz! (868.1)
+uint32_t  freq = 869000000; // in Mhz! (869.0)
 
 byte hello[64] = ".......... Transmission was successful!";
 static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp)
