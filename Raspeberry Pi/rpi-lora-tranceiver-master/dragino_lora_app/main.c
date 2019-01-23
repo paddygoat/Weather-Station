@@ -165,6 +165,14 @@ std::string str4 = ("");
 
 enum sf_t { SF7=7, SF8, SF9, SF10, SF11, SF12 };
 
+const std::string red("\033[0;31m");
+const std::string blue("\033[0;34m");
+const std::string green("\033[0;32m");
+const std::string yellow("\033[0;33m");
+const std::string cyan("\033[0;36m");
+const std::string reset("\033[0m\n");
+const std::string resetSameLine("\033[0m");
+
 /*******************************************************************************
  *
  * Configure these values!
@@ -182,7 +190,7 @@ sf_t sf = SF7;
 // Set center frequency
 uint32_t  freq = 869000000; // in Mhz! (869.0)
 
-byte hello[64] = ".......... Transmission was successful!";
+byte hello[64] = ".......... Callback transmission was successful!";
 static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp)
 {
     ((std::string*)userp)->append((char*)contents, size * nmemb);
@@ -345,7 +353,7 @@ boolean receive(char *payload) {
 
 void receivepacket() 
 {
-
+    long badCharCount = 1;
     long int SNR;
     int rssicorr;
 
@@ -379,23 +387,47 @@ void receivepacket()
             printf("SNR: %li, ", SNR);
             printf("Length: %i", (int)receivedbytes);
             printf("\n");
+            std::cout << cyan;
             printf("Payload: %s\n", message);               // message is 256 array char
+            std::cout << resetSameLine;
 
 /////////////////////////////////////////////////////////////// 
+            int ASC11 =1;
+
             std::string str3 ("windspeed"); 
-            std::string messageString = std::string(message);       
+            std::string messageString = std::string(message); 
+            std::cout << "ASC11 ?? ";
+            std::cout << green;
+            for (int x = receivedbytes; x>0; x--)
+            {
+              if(message[x]>=0 && message[x]<128)                              // Check for ASC11 characters
+              {
+                std::cout << ".";
+              }
+              else
+              {
+                ASC11 --;
+                std::cout << red << "#" << resetSameLine;
+              }
+              message[x] = ' ';                                               // Erase all message characters.
+            }
+            badCharCount = badCharCount - ASC11;
+            std::cout << reset;
+            std::cout << "Number of bad characters: "<< badCharCount << '\n';
             // Look for the word 'windspeed' in messageString:
             std::size_t found3 = messageString.find(str3);
-            if (found3!=std::string::npos)
+            if ((found3!=std::string::npos) && (ASC11 > 0))
             {
-              std::cout << "... Word 'windspeed' found at: " << found3 << '\n';
+              //std::cout << "\033[1;31mbold red text\033[0m";
+              std::cout << "Word 'windspeed' found at: "<< found3 << '\n';
               ourData = 1;
-              std::cout << "The payload data has been validated .... Status:  " << ourData << '\n';
+              std::cout << green << "The payload data has been validated .... Status:  " << ourData << reset;
             }
             else
             {
               ourData = 0;
-              std::cout << "That was not our data !!!! .... Status:  " << ourData << '\n';
+              std::cout << yellow <<"That was not our data !!!! .... Status:  " << ourData << reset;
+              messageString.clear();
             }
 
             std::string rabbits;  
@@ -413,6 +445,7 @@ void receivepacket()
             if(  (curl) && (ourData == 1)  )
             {
               std::cout << "callBack status:   " << callBack << '\n';
+              curl_easy_setopt(curl, CURLOPT_TIMEOUT, 60);
               // Format:  CURLcode curl_easy_setopt(CURL *handle, CURLOPT_URL, char *URL);
               curl_easy_setopt(curl, CURLOPT_URL, ferrets);
               curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
@@ -426,9 +459,11 @@ void receivepacket()
     
               /* Check for errors */
               if(res != CURLE_OK)
-              fprintf(stderr, "curl_easy_perform() failed: %s\n",
-                  curl_easy_strerror(res));
-
+              {
+                fprintf(stderr, "No interent connection? ..... curl_easy_perform() failed: %s\n",
+                curl_easy_strerror(res));
+                readBuffer = " Nothing to read yet";
+              }
               std::cout << "readBuffer:   " << readBuffer << '\n';
               std::string str2 ("Success!");
 
@@ -502,8 +537,10 @@ void txlora(byte *frame, byte datalen) {
     writeBuf(REG_FIFO, frame, datalen);
     // now we actually start the transmission
     opmode(OPMODE_TX);
-
-    printf("send: %s\n", frame);
+    printf("send .......");
+    std::cout << green;
+    printf("%s\n", frame);
+    std::cout << resetSameLine;
 }
 
 
@@ -556,8 +593,10 @@ int main (int argc, char *argv[])
         opmodeLora();
         opmode(OPMODE_STANDBY);
         opmode(OPMODE_RX);
+        std::cout << yellow;
         printf("Listening at SF%i on %.6lf Mhz.\n", sf,(double)freq/1000000);
         printf("------------------\n");
+        std::cout << reset;
         while(callBack == 0) 
         {
           receivepacket(); 
