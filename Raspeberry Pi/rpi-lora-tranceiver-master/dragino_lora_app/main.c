@@ -5,7 +5,7 @@
  * http://www.dragino.com
  *
  *******************************************************************************/
-
+#include <time.h> 
 #include <string>
 #include <stdio.h>
 #include <sys/types.h>
@@ -162,13 +162,24 @@ byte receivedbytes;
 int callBack = 0;
 int ourData = 0;
 std::string str4 = ("");
+int badCharCountLines = 0;
 
 enum sf_t { SF7=7, SF8, SF9, SF10, SF11, SF12 };
+
+//Black        0;30     Dark Gray     1;30
+//Red          0;31     Light Red     1;31
+//Green        0;32     Light Green   1;32
+//Brown/Orange 0;33     Yellow        1;33
+//Blue         0;34     Light Blue    1;34
+//Purple       0;35     Light Purple  1;35
+//Cyan         0;36     Light Cyan    1;36
+//Light Gray   0;37     White         1;37
 
 const std::string red("\033[0;31m");
 const std::string blue("\033[0;34m");
 const std::string green("\033[0;32m");
-const std::string yellow("\033[0;33m");
+const std::string yellow("\033[1;33m");
+const std::string purple("\033[0;35m");
 const std::string cyan("\033[0;36m");
 const std::string reset("\033[0m\n");
 const std::string resetSameLine("\033[0m");
@@ -353,7 +364,7 @@ boolean receive(char *payload) {
 
 void receivepacket() 
 {
-    long badCharCount = 1;
+    int badCharCount = 1;
     long int SNR;
     int rssicorr;
 
@@ -381,7 +392,15 @@ void receivepacket()
             {
                 rssicorr = 157;
             }
+            
+            time_t rawtime;
+            struct tm * timeinfo;
 
+            time (&rawtime);
+            timeinfo = localtime (&rawtime);
+            //printf ("Current local time and date: %s", asctime(timeinfo));
+            std::cout << purple << asctime(timeinfo) << resetSameLine;
+             
             printf("Packet RSSI: %d, ", readReg(0x1A)-rssicorr);
             printf("RSSI: %d, ", readReg(0x1B)-rssicorr);
             printf("SNR: %li, ", SNR);
@@ -392,28 +411,33 @@ void receivepacket()
             std::cout << resetSameLine;
 
 /////////////////////////////////////////////////////////////// 
+
             int ASC11 =1;
 
             std::string str3 ("windspeed"); 
             std::string messageString = std::string(message); 
             std::cout << "ASC11 ?? ";
-            std::cout << green;
+            
             for (int x = receivedbytes; x>0; x--)
             {
               if(message[x]>=0 && message[x]<128)                              // Check for ASC11 characters
               {
-                std::cout << ".";
+                std::cout << green << "░";
               }
               else
               {
                 ASC11 --;
-                std::cout << red << "#" << resetSameLine;
+                std::cout << red << "░" << resetSameLine;
               }
               message[x] = ' ';                                               // Erase all message characters.
             }
             badCharCount = badCharCount - ASC11;
+            if(ASC11 < 1)
+            {
+              badCharCountLines ++;
+            }
             std::cout << reset;
-            std::cout << "Number of bad characters: "<< badCharCount << '\n';
+            std::cout << "Number of bad characters: "<< badCharCount << ". Total number of bad packets: " << badCharCountLines << '\n';
             // Look for the word 'windspeed' in messageString:
             std::size_t found3 = messageString.find(str3);
             if ((found3!=std::string::npos) && (ASC11 > 0))
@@ -478,6 +502,7 @@ void receivepacket()
  
               /* always cleanup */ 
               curl_easy_cleanup(curl);
+
             }   // if(curl)
 ///////////////////////////////////////////////////////////////         
         } // received a message
@@ -546,6 +571,9 @@ void txlora(byte *frame, byte datalen) {
 
 int main (int argc, char *argv[]) 
 {
+  wiringPiSetup () ;                           // Used to be on line 578. Moved here to avoid 'Too many files open SPi' error.
+  wiringPiSPISetup(CHANNEL, 500000);           // Used to be on line 579. Moved here to avoid 'Too many files open SPi' error.
+  
   while(1)
   {
     if (argc < 2) 
@@ -553,14 +581,12 @@ int main (int argc, char *argv[])
         printf ("Usage: argv[0] sender|rec [message]\n");
         exit(1);
     }
-    wiringPiSetup () ;
-    pinMode(ssPin, OUTPUT);
-    pinMode(dio0, INPUT);
-    pinMode(RST, OUTPUT);
 
-    wiringPiSPISetup(CHANNEL, 500000);
+  pinMode(ssPin, OUTPUT);
+  pinMode(dio0, INPUT);
+  pinMode(RST, OUTPUT);
 
-    SetupLoRa();
+  SetupLoRa();
 
 //  if (!strcmp("sender", argv[1])) 
     if (callBack == 1) 
