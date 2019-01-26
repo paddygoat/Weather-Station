@@ -1,13 +1,14 @@
 #include <Arduino.h>
 #include "counters.h"
 
-int frequency;
+unsigned long frequency;
 float correction =0;
 double runningTotal =0;
 
 float knots =0.00;
 float knotsMax =0.00;
 float knotsAv =0.00;
+float previousKnotsAv = 0.00;
 
 float knotsDec =0.1;
 float knotsMaxDec =0.1;
@@ -23,12 +24,15 @@ int knotsMaxDecInt;
 int knotsAvDecInt;
 
 float previousKnots =0;
-
 float calibration = 1.0047;    // (46.62 / 46.4)
+
+float knotsRatio =0;
+int error =0;
+int zLog =0;
 
 void windSpeedSetup()
 {
-  
+
 }
     
 void windSpeed()
@@ -37,25 +41,39 @@ void windSpeed()
   if (frequency < 0){frequency=0;}    
   int correction =0;
   int adjustments();
+
+  knots = (frequency * calibration /10) + correction + 0.1;
   
-  knots = (frequency * calibration /10) + correction;
   if (z==-1)
   {
     previousKnots = knots;
   }
-  if (knots < 10)                            // Filter out some weird readings at low speeds.
+  if ( z==25)
   {
-    if( (knots/previousKnots) > 2)
-    {
-      knots = previousKnots;
-      Serial.println("..... ERROR DETECTED !! .....");
-      tone(3,1000,10000);
-      delay(10000);
-    }
-    previousKnots = knots;
+    previousKnotsAv = knotsAv;                                                                // Helps filter work properly.
+  }
+  knotsRatio = knots/previousKnots;
+  
+  if( (previousKnots < 3) && (knotsRatio > 1.5) && (previousKnotsAv < 3)  )                    // Filter out some weird readings at low speeds.
+  {
+    error =1;
+    zLog = z;
+    Serial.print("knots ratio:  ");Serial.print(knotsRatio);
+    Serial.print("     knots:  ");Serial.print(knots);
+    Serial.println("  ..... POSSIBLE ERROR DETECTED !! ..... NOW TRYING TO CORRECT.....");
+    knots = previousKnots;
+    Serial.print("     new knots:  ");Serial.print(knots);
+    Serial.println("  .......... CORRECTED ??.....");
+    //tone(3,1000,10000);
   }
   
+  if(previousKnots < 5)
+  {
+    //delay(5000);                              // Allows pulseIn to catch up with itself? No - interfers with calback. 
+  }
+  previousKnots = knots;
   z++;
+  
 
   if (knots > knotsMax)
   {
@@ -78,9 +96,11 @@ void windSpeed()
   }
   Serial.print("Z: ");Serial.print(z);  
   Serial.print("    Knots: ");Serial.print(knots);
-  Serial.print("    Previous knots: ");Serial.println(previousKnots);
+  Serial.print("    Knots ratio:  ");Serial.print(knotsRatio);
+  Serial.print("    Previous knots av:  ");Serial.print(previousKnotsAv);
   //Serial.print("    Av wind speed: ");Serial.print(knotsAv);  
-  //Serial.print("    Max wind gust: ");Serial.println(knotsMax);   
+  Serial.print("    Max wind gust: ");Serial.print(knotsMax);   
+  Serial.print("   LAST ERROR DETECTED at Z=  ");Serial.println(zLog);
   //Serial.print("   Running total: ");Serial.println(runningTotal);
   //Serial.print("Z: ");Serial.println(z);
 }
