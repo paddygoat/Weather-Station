@@ -9,15 +9,16 @@ float totalVolts;
 
 void batteryVolts()
 {
-    volts = analogRead(A2)/28.81;  
-    if (z>0)
-    {
-      totalVolts = (totalVolts + volts);
-      batteryVoltsValue = totalVolts/z;    
-    }
-    else
-    {
-      batteryVoltsValue = volts;
-    }
-    //Serial.print("Battery volts: ");Serial.println(batteryVoltsValue);
+    batteryVoltsValue = analogRead(A2)/28.81;
+    //volts = analogRead(A2)/28.81;  
+    //if (z>0)
+    //{
+    //  totalVolts = (totalVolts + volts);
+    //  batteryVoltsValue = totalVolts/z;    
+    //}
+    //else
+    //{
+    //  batteryVoltsValue = volts;
+    //}
+    Serial.print("Battery volts: ");Serial.println(batteryVoltsValue);
 }
