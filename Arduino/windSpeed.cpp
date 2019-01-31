@@ -54,7 +54,7 @@ void windSpeed()
   }
   knotsRatio = knots/previousKnots;
   
-  if( (previousKnots < 3) && (knotsRatio > 1.5) && (previousKnotsAv < 3)  )                    // Filter out some weird readings at low speeds.
+  if( (previousKnots < 5) && (knotsRatio > 1.5) && (previousKnotsAv < 5)  )                    // Filter out some weird readings at low speeds. PreviousK... used to be 3.
   {
     error =1;
     zLog = z;
