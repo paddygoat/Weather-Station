@@ -456,7 +456,7 @@ void receivepacket()
 
             std::string rabbits;  
             std::string initiator = "";
-            std::string URL = "http://www.goatindustries.co.uk/weather2/send.php?";
+            std::string URL = "http://www.************************************************";
             rabbits = initiator + URL + messageString;
 
             const char *ferrets = rabbits.c_str();                  // Convert string to constant character.
