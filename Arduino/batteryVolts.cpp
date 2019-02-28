@@ -5,12 +5,12 @@ float volts=0;
 float batteryVoltsValue =0;
 float totalVolts;
 
-//A2 is analogue in.
+//A3 is analogue in.
 
 void batteryVolts()
 {
-    batteryVoltsValue = analogRead(A2)/28.81;
-    //volts = analogRead(A2)/28.81;  
+    batteryVoltsValue = analogRead(A3)/28.81;
+    //volts = analogRead(A3)/28.81;  
     //if (z>0)
     //{
     //  totalVolts = (totalVolts + volts);
@@ -20,5 +20,5 @@ void batteryVolts()
     //{
     //  batteryVoltsValue = volts;
     //}
-    Serial.print("Battery volts: ");Serial.println(batteryVoltsValue);
+    //Serial.print("Battery volts: ");Serial.println(batteryVoltsValue);
 }

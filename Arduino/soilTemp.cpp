@@ -5,8 +5,8 @@
 
 float soilTemp =0;
 
-// Data wire is plugged into port 7 on the Arduino
-#define ONE_WIRE_BUS 7
+// Data wire is plugged into port 0 on the Arduino
+#define ONE_WIRE_BUS 0
  
 OneWire oneWire(ONE_WIRE_BUS);
 

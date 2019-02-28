@@ -10,9 +10,9 @@
 
 void setupLEDs()
 {
-  pinMode(8, OUTPUT);  // Yellow
-  pinMode(9, OUTPUT);  // Blue
-  pinMode(10, OUTPUT); // Red
+  pinMode(6, OUTPUT);  // Yellow
+  pinMode(1, OUTPUT);  // Blue
+  pinMode(2, OUTPUT); // Red
 }
 
 void flashYellowLED()
@@ -25,7 +25,7 @@ void flashYellowLED()
   {
     ledStateYellow = LOW;
   }
-  digitalWrite(8, ledStateYellow);
+  digitalWrite(2, ledStateYellow);
 }
 void flashBlueLED()
 {  
@@ -37,11 +37,11 @@ void flashBlueLED()
   {
     ledStateBlue = LOW;
   }
-  digitalWrite(9, ledStateBlue);
+  digitalWrite(1, ledStateBlue);
 }
 void flashRedLED()
 {
-  //digitalWrite(10, HIGH);
+  //digitalWrite(6, HIGH);
   //previousMillisRed =  millis();
   //unsigned long currentMillis = millis();
   //if (currentMillis - previousMillisRed >= intervalRed) 

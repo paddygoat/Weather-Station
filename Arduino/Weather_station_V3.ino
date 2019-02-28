@@ -14,18 +14,22 @@
 
 int count = 0;
 unsigned long previousMillisSensors = 0;
-const long intervalSensors = 60000;              // Interval to take reading on all sensors other than wind.
+const long intervalSensors = 300000;              // Interval to take reading on all sensors other than wind.
 unsigned long previousMillisWind = 0;
-const long intervalWind = 400;                  // Interval to take reading on wind speed sensors.
+const long intervalWind = 2000;                  // Interval to take reading on wind speed sensors.
 unsigned long previousMillisVane = 0;
-const long intervalVane = 5000;                  // Interval to take reading on wind vane sensors.
-const byte interruptPinA = 1;
+const long intervalVane = 6000;                  // Interval to take reading on wind vane sensors.
+unsigned long previousMillisCallBack = 0;
+const long intervalCallBack = 10000;              // Interval to allow time for callback to occurr before next wind reading thus preventing interrupt conficts.
+unsigned long previousMillisSlowPrint = 0;
+const long intervalSlowPrint = 100;
+const byte interruptPinA = 7;
 int rainValue = 0;
 int rainValuex2 =0;
 //float soilTemp =0;
 String initiator = "";
 //int z = -1;                     // This is the cycle counter and gets reset to zero on successful call back from the server recieving the data.
-
+int callBackListeningStatus = 0;
 ////////////////////////////////////////////////////////////////////////////
   
 void setup()
@@ -51,6 +55,7 @@ void setup()
   setupBME280();
   soilSetup();
   setupWindVane();
+  windSpeedSetup();
 
   Serial.println(" ..... All is good ..... Continuing  .....");
   Serial.println("");
@@ -68,13 +73,19 @@ void loop()
   unsigned long currentMillis = millis();
   if (currentMillis - previousMillisSensors >= intervalSensors)        // Need relatively low number of samples of temperatures, humidity etc as they dont change quickly.
   {
+    Serial.print("..1..");
     previousMillisSensors = currentMillis;
     tone(3,1000,1000);
+    Serial.print("..2..");
     soilTempFunction();
+    Serial.print("..3..");
     soil();            // Read soil moisture.
+    Serial.print("..4..");
     BME280Readings();
+    Serial.print("..5..");
     batteryVolts();
     rainValue = rainValuex2/2;
+    Serial.println("..6.. out of 6");
     printToSerial();
     //const char webAddress[100] = "http://www.goatindustries.co.uk/weather2/send.php?";
     String dataString = "";
@@ -91,16 +102,31 @@ void loop()
     LoRa.endPacket();
     Serial.println("");
     flashYellowLED();
-    //count++;
+    callBackListeningStatus = 1;                                         // Allow time to recieve callback or else interrupts may collide.
+    previousMillisCallBack = currentMillis;
   }
-  if (currentMillis - previousMillisWind >= intervalWind)             // Need relatively high number of wind samples to catch high wind gusts.
+// Allow time to recieve callback or else interrupts may collide.  
+  if ( (currentMillis - previousMillisCallBack <= intervalCallBack) && (z>10)  )
   {
+    callBackListeningStatus = 1;
+    slowPrint();                                                     // Prints "... Listening ..." every so often.
+  }
+  else
+  {
+    callBackListeningStatus = 0;
+  }
+  
+  if (  (currentMillis - previousMillisWind >= intervalWind) && (callBackListeningStatus == 0)  )            // Need relatively high number of wind samples to catch high wind gusts.
+  {
+    Serial.print("callBackListeningStatus = ");
+    Serial.print(callBackListeningStatus);
+    Serial.print("  ");
     previousMillisWind = currentMillis;
     windSpeed();
     counter();
     flashBlueLED();
   }
-  if (currentMillis - previousMillisVane >= intervalVane)             // Need relatively moderate number of wind vane samples as too many wastes power.
+  if (  (currentMillis - previousMillisVane >= intervalVane)  && (callBackListeningStatus == 0)  )            // Need relatively moderate number of wind vane samples as too many wastes power.
   {
     previousMillisVane = currentMillis;
     windVane();
@@ -119,7 +145,9 @@ void rain()
 }
 void printToSerial()
 {
+  unsigned long currentMillis = millis();
   Serial.println("");
+  Serial.print("currentMillis / 1000: ");Serial.println(currentMillis/1000);
   Serial.print("Z: ");Serial.println(z); 
   Serial.print("Soil temp C: ");Serial.println(soilTemp);
   Serial.print("Soil moisture: "); Serial.print(moisture); Serial.println(" %");
@@ -158,12 +186,14 @@ void onReceive(int packetSize)
     {
       foundpos = i;
       Serial.println("");
+      Serial.print("callBackListeningStatus = ");
+      Serial.println(callBackListeningStatus);
       Serial.println(".........................  Call back was successful !!!! .............................");
       z=0;           // Reset the main counter.
       rainValuex2 =0;
       rainValue =0;
       tone(3,500,1500);
-      windVane();                    // This is here so that wind vane variables get reset quickly.
+      //windVane();                    // This is here so that wind vane variables get reset quickly.
     }
   }
 
@@ -181,6 +211,7 @@ void onReceive(int packetSize)
  // }
 
   // if message is for this device, or broadcast, print details:
+
   Serial.println("");
   Serial.println("Received from: 0x" + String(sender, HEX));
   Serial.println("Sent to: 0x" + String(recipient, HEX));
@@ -190,4 +221,13 @@ void onReceive(int packetSize)
   Serial.println("RSSI: " + String(LoRa.packetRssi()));
   Serial.println("Snr: " + String(LoRa.packetSnr()));
   Serial.println();
+}
+void slowPrint()
+{
+  unsigned long currentMillis = millis();
+  if ((currentMillis - previousMillisSlowPrint) > intervalSlowPrint)
+  {
+    Serial.print(".... ");
+    previousMillisSlowPrint = currentMillis;
+  }
 }

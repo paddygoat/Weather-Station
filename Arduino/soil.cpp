@@ -2,8 +2,8 @@
 #include <Arduino.h>
 
 
-int moisturePowerPin = A3;
-int sensorPin = A1;    
+int moisturePowerPin = A5;
+int sensorPin = A4;    
 int moisture = 0;  // variable to store the value coming from the moisture sensor
 
 

@@ -37,7 +37,9 @@ void windSpeedSetup()
     
 void windSpeed()
 {
+  noInterrupts();                                                 // Stops rain guage from interupting pulsein.NB. The guage does poll twice.
   frequency = 500000/pulseIn(5,HIGH,5000000);
+  interrupts();
   if (frequency < 0){frequency=0;}    
   int correction =0;
   int adjustments();
@@ -48,13 +50,17 @@ void windSpeed()
   {
     previousKnots = knots;
   }
+  if (z==1)
+  {
+    zLog=0;
+  }
   if ( z==25)
   {
     previousKnotsAv = knotsAv;                                                                // Helps filter work properly.
   }
   knotsRatio = knots/previousKnots;
   
-  if( (previousKnots < 5) && (knotsRatio > 1.5) && (previousKnotsAv < 5)  )                    // Filter out some weird readings at low speeds. PreviousK... used to be 3.
+  if( (previousKnots < 5) && (knotsRatio > 2.5) && (previousKnotsAv < 5) && (knots > 5) )                    // Filter out some weird readings at low speeds. PreviousK... used to be 3.
   {
     error =1;
     zLog = z;
