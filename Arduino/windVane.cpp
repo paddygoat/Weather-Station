@@ -54,7 +54,7 @@ void windVane()
   
   int ledStateRed = LOW;
   digitalWrite(10, LOW); 
-  digitalWrite(6, HIGH);                    // Powers the wind vane potentiometer.
+  digitalWrite(4, HIGH);                    // Powers the wind vane potentiometer.
   while (g<2)                               // Get 2 quick readings.
   {
     unsigned long currentMillis = millis();
@@ -71,10 +71,10 @@ void windVane()
       }
     digitalWrite(10, ledStateRed);         // Red LED flashes according to intervalRed.
     g++;  
-    digitalWrite(6, HIGH);                 // Powers the wind vane potentiometer.
+    digitalWrite(4, HIGH);                 // Powers the wind vane potentiometer.
     //delay(10);
     // read the analog in value:
-    adc0 = analogRead(A0);
+    adc0 = analogRead(A6);
     //delay(100);
     }                                                 // End of Millis timer.
   }                                                   // End of while loop.
@@ -108,7 +108,7 @@ void windVane()
       digitalWrite(10, ledStateRed);         // Red LED flashes according to intervalRed.
       g++;  
       // read the analog in value:
-      adc0 = analogRead(A0);
+      adc0 = analogRead(A6);
       sensorValue2 = sensorValue2 + adc0;
 
 // This bit of code below takes care of the instance where the weather vane is hovering around north (hovering zone) and picking up big values and small values in the same batch of 11:
@@ -135,7 +135,7 @@ void windVane()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
     }                                                 // End of Millis timer.
   }                                                   // End of while loop.
-  digitalWrite(6, LOW);                               // Powers down the wind vane potentiometer.
+  digitalWrite(4, LOW);                               // Powers down the wind vane potentiometer.
   digitalWrite(10, LOW);  
   if (sensorValue == 0)                                 
   {
