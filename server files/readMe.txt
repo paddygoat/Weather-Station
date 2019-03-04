@@ -2,3 +2,6 @@ A web server with MYSQL and PHP capablities can be configured to present te GUI 
 
 http://www.goatindustries.co.uk/weather2/
 
+<img src="https://github.com/paddygoat/Weather-Station/blob/master/server files/dials02.jpg" />
+
+
