@@ -10,7 +10,7 @@
 #include "windSpeed.h"
 #include "windVane.h"
 #include "loraUtil.h"
-
+#include "heartbeat.h"
 
 int count = 0;
 unsigned long previousMillisSensors = 0;
@@ -30,13 +30,18 @@ int rainValuex2 =0;
 String initiator = "";
 //int z = -1;                     // This is the cycle counter and gets reset to zero on successful call back from the server recieving the data.
 int callBackListeningStatus = 0;
+
 ////////////////////////////////////////////////////////////////////////////
   
 void setup()
 {
-  pinMode(interruptPinA, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(interruptPinA), rain, CHANGE);  // Triggers void rain().
+  pinMode(8, OUTPUT);  // HIGH disables watchdog
+  digitalWrite(8, HIGH);
+  pinMode(9, OUTPUT);  // HIGH disables watchdog
+  digitalWrite(9, HIGH);
+  
   Serial.begin(96000);
+
   delay(2000);
   tone(3,1000,1000);
   Serial.println("Starting ..... ");
@@ -56,13 +61,22 @@ void setup()
   soilSetup();
   setupWindVane();
   windSpeedSetup();
-
+  setupHeartBeat();
+    
+  pinMode(interruptPinA, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(interruptPinA), rain, CHANGE);  // Triggers void rain().
+ 
   Serial.println(" ..... All is good ..... Continuing  .....");
-  Serial.println("");
+  Serial.println(" ..... Delay 30 seconds  .....");     // To enable code updates.
+  Serial.println(" ");
+
+  //delay(30000);
 } // setup
 
 void loop()
 {
+  heartBeat();
+  digitalWrite(8, LOW);  // Enable watchdog
   if ( z==0)
   {
     rainValuex2 =0;
@@ -76,12 +90,17 @@ void loop()
     Serial.print("..1..");
     previousMillisSensors = currentMillis;
     tone(3,1000,1000);
+    //delay(10000);
     Serial.print("..2..");
     soilTempFunction();
     Serial.print("..3..");
     soil();            // Read soil moisture.
     Serial.print("..4..");
+    digitalWrite(8, HIGH);  // HIGH disables watchdog
+    digitalWrite(9, HIGH);  // Disable watchdog
     BME280Readings();
+    digitalWrite(8, LOW);  // Enable watchdog
+    digitalWrite(9, LOW);  // Enable watchdog
     Serial.print("..5..");
     batteryVolts();
     rainValue = rainValuex2/2;
