@@ -16,8 +16,8 @@ void soilSetup()
 void soil()
 {
   digitalWrite(moisturePowerPin, HIGH);              // Powers up the moisture sensor for 0.1 seconds to prevent corrosion.
+  delay (50);
   moisture = (analogRead(sensorPin)*0.120)-19;         // The sensor is calibrated.
-  delay (100);
   digitalWrite(moisturePowerPin, LOW);               // Powers down the moisture sensor
   //Serial.print("Soil moisture: "); Serial.print(moisture); Serial.println(" %");
 }

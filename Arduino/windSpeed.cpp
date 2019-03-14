@@ -37,6 +37,7 @@ void windSpeedSetup()
     
 void windSpeed()
 {
+  //Serial.print(" ..pulseIn is next.. ");
   noInterrupts();                                                 // Stops rain guage from interupting pulsein.NB. The guage does poll twice.
   frequency = 500000/pulseIn(5,HIGH,5000000);
   interrupts();

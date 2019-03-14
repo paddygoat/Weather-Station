@@ -33,6 +33,7 @@ float rawDirection =0;
 unsigned int c=0;
 unsigned int modeSize=0;
 int vaneValue =0;
+float hours = 0;
 
 void setupWindVane()
 {
@@ -238,8 +239,8 @@ if (finalDirection==359 || finalDirection==360 || finalDirection==1)
 // During northerly winds the sensor will self calibrate:
 //////////////////////////////////////////////////////////////////////////////////////////////////////  
   Serial.println("");
-  //Serial.print("sensor = ");
-  //Serial.print(sensorValue);
+  Serial.print("Wind vane analogue Read = ");
+  Serial.print(sensorValue);
   //Serial.print("\t output = ");
   //Serial.print(outputValue,2);
   //Serial.print("\t adjusted output = ");
@@ -251,7 +252,7 @@ if (finalDirection==359 || finalDirection==360 || finalDirection==1)
   //Serial.print("\t p = ");
   //Serial.println(p);  
 
-  Serial.print("Final Direction =  ");
+  Serial.print("  Final Direction =  ");
   Serial.print(finalDirection);
   Serial.print("  Mode size = ");
   Serial.print(modeSize);
@@ -265,7 +266,7 @@ if (finalDirection==359 || finalDirection==360 || finalDirection==1)
   //Serial.print("  Big = ");
   //Serial.print(big);
   double currentMillis = millis();
-  float hours = currentMillis/3600000;
+  hours = currentMillis/3600000;
   Serial.print("  Hours = ");
   Serial.println(hours,3);
 

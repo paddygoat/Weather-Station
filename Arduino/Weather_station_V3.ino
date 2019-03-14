@@ -30,16 +30,13 @@ int rainValuex2 =0;
 String initiator = "";
 //int z = -1;                     // This is the cycle counter and gets reset to zero on successful call back from the server recieving the data.
 int callBackListeningStatus = 0;
+int sleepStatus = 0;
 
 ////////////////////////////////////////////////////////////////////////////
   
 void setup()
 {
-  pinMode(8, OUTPUT);  // HIGH disables watchdog
-  digitalWrite(8, HIGH);
-  pinMode(9, OUTPUT);  // HIGH disables watchdog
-  digitalWrite(9, HIGH);
-  
+  setupHeartBeat();
   Serial.begin(96000);
 
   delay(2000);
@@ -54,6 +51,7 @@ void setup()
   //}
   // locate devices on the bus
   loraSetup();
+  LoRa.sleep();              // Sends the radio to sleep
   Serial.println("");
 
   setupLEDs();
@@ -61,7 +59,7 @@ void setup()
   soilSetup();
   setupWindVane();
   windSpeedSetup();
-  setupHeartBeat();
+
     
   pinMode(interruptPinA, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(interruptPinA), rain, CHANGE);  // Triggers void rain().
@@ -76,18 +74,18 @@ void setup()
 void loop()
 {
   heartBeat();
-  digitalWrite(8, LOW);  // Enable watchdog
   if ( z==0)
   {
     rainValuex2 =0;
     rainValue =0;
   }
-  onReceive(LoRa.parsePacket());
+
   //flashYellowLED();
   unsigned long currentMillis = millis();
   if (currentMillis - previousMillisSensors >= intervalSensors)        // Need relatively low number of samples of temperatures, humidity etc as they dont change quickly.
   {
     Serial.print("..1..");
+    digitalWrite(9, HIGH);  // Disable watchdog
     previousMillisSensors = currentMillis;
     tone(3,1000,1000);
     //delay(10000);
@@ -96,10 +94,9 @@ void loop()
     Serial.print("..3..");
     soil();            // Read soil moisture.
     Serial.print("..4..");
-    digitalWrite(8, HIGH);  // HIGH disables watchdog
-    digitalWrite(9, HIGH);  // Disable watchdog
+
     BME280Readings();
-    digitalWrite(8, LOW);  // Enable watchdog
+
     digitalWrite(9, LOW);  // Enable watchdog
     Serial.print("..5..");
     batteryVolts();
@@ -108,7 +105,7 @@ void loop()
     printToSerial();
     //const char webAddress[100] = "http://www.goatindustries.co.uk/weather2/send.php?";
     String dataString = "";
-    dataString = initiator + "tempout="+BME280Temperature + "&tempsoil="+soilTemp + "&windgust="+knotsMax + "&windspeed="+knotsAv + "&rain="+rainValue + "&moisture="+moisture + "&tempint="+BME280Temperature + "&pressure="+pressure + "&humidity="+humidity + "&volts="+batteryVoltsValue + "&windway="+vaneValue + "&END_OF_MESSAGE";
+    dataString = initiator + "tempout="+BME280Temperature + "&tempsoil="+soilTemp + "&windgust="+knotsMax + "&windspeed="+knotsAv + "&rain="+rainValue + "&moisture="+moisture + "&tempint="+hours + "&pressure="+pressure + "&humidity="+humidity + "&volts="+batteryVoltsValue + "&windway="+vaneValue + "&END_OF_MESSAGE";
     Serial.print("Sending packet: ");
     Serial.print(dataString);
     //Serial.print("  ");
@@ -123,16 +120,25 @@ void loop()
     flashYellowLED();
     callBackListeningStatus = 1;                                         // Allow time to recieve callback or else interrupts may collide.
     previousMillisCallBack = currentMillis;
+    
   }
-// Allow time to recieve callback or else interrupts may collide.  
-  if ( (currentMillis - previousMillisCallBack <= intervalCallBack) && (z>10)  )
+// Allow time to recieve callback or else interrupts may collide.   
+  if ( (currentMillis - previousMillisCallBack <= intervalCallBack) && (z>10)  )  // On successful callback z is reset to 0.
   {
+    onReceive(LoRa.parsePacket());
     callBackListeningStatus = 1;
+    sleepStatus = 0;
     slowPrint();                                                     // Prints "... Listening ..." every so often.
   }
   else
   {
     callBackListeningStatus = 0;
+  }
+  if (  (sleepStatus == 0)&&(callBackListeningStatus == 0)  )
+  {
+    LoRa.sleep();              // Sends the radio to sleep
+    sleepStatus = 1;
+    Serial.println("LoRa sent to sleep.");
   }
   
   if (  (currentMillis - previousMillisWind >= intervalWind) && (callBackListeningStatus == 0)  )            // Need relatively high number of wind samples to catch high wind gusts.
@@ -208,6 +214,7 @@ void onReceive(int packetSize)
       Serial.print("callBackListeningStatus = ");
       Serial.println(callBackListeningStatus);
       Serial.println(".........................  Call back was successful !!!! .............................");
+
       z=0;           // Reset the main counter.
       rainValuex2 =0;
       rainValue =0;
