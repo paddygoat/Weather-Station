@@ -9,7 +9,8 @@ float totalVolts;
 
 void batteryVolts()
 {
-    batteryVoltsValue = analogRead(A3)/28.81;
+    int sensorReading = analogRead(A3);
+    batteryVoltsValue = sensorReading/28.81;
     //volts = analogRead(A3)/28.81;  
     //if (z>0)
     //{
