@@ -163,6 +163,9 @@ int callBack = 0;
 int ourData = 0;
 std::string str4 = ("");
 int badCharCountLines = 0;
+std::string GmoistureValue = ("");
+std::string GtempoutValue = ("");
+std::string rabbits = ("");
 
 enum sf_t { SF7=7, SF8, SF9, SF10, SF11, SF12 };
 
@@ -414,7 +417,11 @@ void receivepacket()
 
             int ASC11 =1;
 
-            std::string str3 ("windspeed"); 
+            std::string str3 ("windspeed");
+            std::string str4 ("GLASSHOUSE");
+            std::string str5 ("moisture");
+            std::string str6("tempout");
+            
             std::string messageString = std::string(message); 
             std::cout << "ASC11 ?? ";
             
@@ -438,15 +445,58 @@ void receivepacket()
             }
             std::cout << reset;
             std::cout << "Number of bad characters: "<< badCharCount << ". Total number of bad packets: " << badCharCountLines << '\n';
+
+            std::size_t found3 = messageString.find(str3);            // windspeed
+            std::size_t found4 = messageString.find(str4);            // GLASSHOUSE
+            std::size_t found5 = messageString.find(str5);            // moisture
+            std::size_t found6 = messageString.find(str6);            // tempout
+                        
+            // Look for the word 'GLASSHOUSE' in messageString:
+            if ((found4!=std::string::npos) && (ASC11 > 0))
+            {
+              //std::cout << "\033[1;31mbold red text\033[0m";
+              GmoistureValue.clear();
+              GtempoutValue.clear();
+              std::cout << "Word 'GLASSHOUSE' found at: "<< found4 << '\n';
+              std::cout << "Word 'moisture' found at: "<< found5 << '\n';
+              std::cout << "Word 'tempout' found at: "<< found6 << '\n';
+              ourData = 2;
+              std::cout << green << "The payload data has been validated .... Status:  " << ourData << reset;
+              for (unsigned i=0; i<2; ++i)
+              {
+                GmoistureValue = GmoistureValue + messageString.at(i+found5+9);
+              }
+              for (unsigned i=0; i<4; ++i)
+              {
+                GtempoutValue = GtempoutValue + messageString.at(i+found6+8);
+              }
+              GmoistureValue = "&Gmoisture=" + GmoistureValue;
+              GtempoutValue = "&Gtemp=" + GtempoutValue;
+              std::cout << "Glasshouse Moisture value:" << GmoistureValue << '\n';
+              std::cout << "Glasshouse Temperature value:" << GtempoutValue << '\n';
+              messageString.clear();
+              std::cout << '\n';
+            }
             // Look for the word 'windspeed' in messageString:
-            std::size_t found3 = messageString.find(str3);
-            if ((found3!=std::string::npos) && (ASC11 > 0))
+            else if ((found3!=std::string::npos) && (ASC11 > 0) )
             {
               //std::cout << "\033[1;31mbold red text\033[0m";
               std::cout << "Word 'windspeed' found at: "<< found3 << '\n';
               ourData = 1;
               std::cout << green << "The payload data has been validated .... Status:  " << ourData << reset;
+              
+              rabbits.clear();
+              rabbits = "";
+              std::string initiator = "";
+              std::string URL = "http://www.goatindustries.co.uk/weather2/send.php?";
+              std::cout << "Glasshouse Moisture value:" << GmoistureValue << '\n';
+              std::cout << "Glasshouse Temperature value:" << GtempoutValue << '\n';
+              messageString.erase(messageString.find_last_not_of(" \t\n\r\f\v") + 1);               // remove whitespace
+              rabbits = initiator + URL + messageString + GmoistureValue +GtempoutValue;
+              //std::cout << "rabbits: "<< rabbits << '\n';
+              
             }
+            // No words were found in messageString:
             else
             {
               ourData = 0;
@@ -454,11 +504,8 @@ void receivepacket()
               messageString.clear();
             }
 
-            std::string rabbits;  
-            std::string initiator = "";
-            std::string URL = "http://www.************************************************";
-            rabbits = initiator + URL + messageString;
-
+ 
+              
             const char *ferrets = rabbits.c_str();                  // Convert string to constant character.
   
             CURL *curl;
@@ -466,7 +513,7 @@ void receivepacket()
             std::string readBuffer;
  
             curl = curl_easy_init();
-            if(  (curl) && (ourData == 1)  )
+            if(  (curl) && (ourData == 1)  )                           // Only upload weather station data + GmoistureValue
             {
               std::cout << "callBack status:   " << callBack << '\n';
               curl_easy_setopt(curl, CURLOPT_TIMEOUT, 60);
@@ -502,7 +549,7 @@ void receivepacket()
  
               /* always cleanup */ 
               curl_easy_cleanup(curl);
-
+              ourData = 0;
             }   // if(curl)
 ///////////////////////////////////////////////////////////////         
         } // received a message
