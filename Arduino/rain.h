@@ -1,9 +1,9 @@
-#ifndef WEATHER_STATION_V3_RAIN_H
-#define WEATHER_STATION_V3_RAIN_H
+#ifndef WEATHER_STATION_V3_RAIN
+#define WEATHER_STATION_V3_RAIN
 
-extern void initCompass();
-extern void readCompass();
+extern void rainDetect();
+extern void setupRain();
+extern int rainValuex1;
 
-extern float compass; // orientation of the platform
 
 #endif

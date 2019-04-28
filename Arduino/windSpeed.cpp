@@ -6,6 +6,7 @@ float correction =0;
 double runningTotal =0;
 
 float knots =0.00;
+float windSpeedValue =0.00;
 float knotsMax =0.00;
 float knotsAv =0.00;
 float previousKnotsAv = 0.00;
@@ -29,6 +30,7 @@ float calibration = 1.0047;    // (46.62 / 46.4)
 float knotsRatio =0;
 int error =0;
 int zLog =0;
+int windSpeedPin = 6;
 
 void windSpeedSetup()
 {
@@ -39,14 +41,14 @@ void windSpeed()
 {
   //Serial.print(" ..pulseIn is next.. ");
   noInterrupts();                                                 // Stops rain guage from interupting pulsein.NB. The guage does poll twice.
-  frequency = 500000/pulseIn(5,HIGH,5000000);
+  frequency = 500000/pulseIn(windSpeedPin,HIGH,500000);                     // was 5000000
   interrupts();
   if (frequency < 0){frequency=0;}    
   int correction =0;
   int adjustments();
 
   knots = (frequency * calibration /10) + correction + 0.1;
-  
+  windSpeedValue = knots;
   if (z==-1)
   {
     previousKnots = knots;
@@ -71,7 +73,6 @@ void windSpeed()
     knots = previousKnots;
     Serial.print("     new knots:  ");Serial.print(knots);
     Serial.println("  .......... CORRECTED ??.....");
-    //tone(3,1000,10000);
   }
   
   if(previousKnots < 5)

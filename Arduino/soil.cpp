@@ -2,8 +2,8 @@
 #include <Arduino.h>
 
 
-int moisturePowerPin = A5;
-int sensorPin = A4;    
+int moisturePowerPin = A4;
+int sensorPin = A2;    
 int moisture = 0;  // variable to store the value coming from the moisture sensor
 
 
@@ -16,8 +16,16 @@ void soilSetup()
 void soil()
 {
   digitalWrite(moisturePowerPin, HIGH);              // Powers up the moisture sensor for 0.1 seconds to prevent corrosion.
-  delay (50);
-  moisture = (analogRead(sensorPin)*0.120)-19;         // The sensor is calibrated.
+  delay (20);
+  int i = 0;
+  moisture = 0;
+  while(i <5)
+  {
+    moisture = moisture +(analogRead(sensorPin)*0.120)-19;
+    delay(10);
+    i++;
+  }
+  moisture = moisture / i;
   digitalWrite(moisturePowerPin, LOW);               // Powers down the moisture sensor
   //Serial.print("Soil moisture: "); Serial.print(moisture); Serial.println(" %");
 }

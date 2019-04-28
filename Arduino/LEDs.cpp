@@ -2,54 +2,36 @@
 #include <Arduino.h>
 
   int ledStateYellow = LOW;
-  int ledStateBlue = LOW;
-  unsigned long previousMillisYellow = 0;
-  unsigned long previousMillisBlue = 0;
-  const long intervalYellow = 1000;
-  const long intervalBlue = 50;
+  int ledStateRed = LOW;
+
 
 void setupLEDs()
 {
-  pinMode(6, OUTPUT);  // Yellow
-  pinMode(1, OUTPUT);  // Blue
-  pinMode(2, OUTPUT); // Red
+  pinMode(1, OUTPUT);  // Yellow
+  pinMode(0, OUTPUT);  // Red
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(0,LOW);
+  digitalWrite(1,LOW);
+  digitalWrite(LED_BUILTIN,LOW);
 }
 
 void flashYellowLED()
 {
-  if (ledStateYellow == LOW) 
-  {
-    ledStateYellow = HIGH;
-  }
-  else 
-  {
-    ledStateYellow = LOW;
-  }
-  digitalWrite(2, ledStateYellow);
-}
-void flashBlueLED()
-{  
-  if (ledStateBlue == LOW) 
-  {
-    ledStateBlue = HIGH;
-  }
-  else 
-  {
-    ledStateBlue = LOW;
-  }
-  digitalWrite(1, ledStateBlue);
+  digitalWrite(1,HIGH);
+  delay(20);
+  digitalWrite(1,LOW);
 }
 void flashRedLED()
-{
-  //digitalWrite(6, HIGH);
-  //previousMillisRed =  millis();
-  //unsigned long currentMillis = millis();
-  //if (currentMillis - previousMillisRed >= intervalRed) 
-  //{
-  //  previousMillisRed = currentMillis;
-  //  digitalWrite(10, LOW);
-  //} 
+{  
+  digitalWrite(0,HIGH);
+  delay(20);
+  digitalWrite(0,LOW);
 }
-
-
+void flashBuiltinLED()
+{
+  digitalWrite(LED_BUILTIN, HIGH);
+  delay(10);
+  digitalWrite(LED_BUILTIN, LOW);
+  delay(10);
+}
 

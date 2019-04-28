@@ -6,11 +6,11 @@
 float soilTemp =0;
 
 // Data wire is plugged into port 0 on the Arduino
-#define ONE_WIRE_BUS 0
+#define ONE_WIRE_BUS A1
  
 OneWire oneWire(ONE_WIRE_BUS);
 
-// Pass our oneWire reference to Dallas Temperature. 
+// Pass our oneWire reference to Dallas Temperature.
 DallasTemperature sensors(&oneWire);
 // arrays to hold device address
 DeviceAddress soilThermometer;
@@ -27,7 +27,8 @@ void printAddress(DeviceAddress deviceAddress)
 void printTemperature(DeviceAddress deviceAddress)
 {
   soilTemp = sensors.getTempC(deviceAddress);
-  //Serial.print("Soil temp C: ");  Serial.println(soilTemp);
+  if(soilTemp < -100)
+    {soilTemp = 10;}
 }
 void setupSoilTemp()
 {
@@ -67,7 +68,6 @@ void soilTempFunction()
     tone(3,1000,100);
     sensors.requestTemperatures(); // Send the command to get temperatures
     printTemperature(soilThermometer);
-    delay(2000);
 } // loop
 // function to print a device address
 

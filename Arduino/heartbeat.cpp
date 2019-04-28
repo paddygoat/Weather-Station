@@ -1,55 +1,24 @@
 #include <Arduino.h>
-unsigned long  previousMillisBeat;
-int intervalBeat = 500;
 int beatState = LOW;
+const int enablePin = 12;
+const int pulsePin = 11;
 
 void setupHeartBeat()
 {
-  pinMode(8, OUTPUT);    // Pulse watchdog
-  pinMode(9, OUTPUT);    // LOW enables watchdog
-  digitalWrite(9, HIGH);  // LOW enables watchdog
+  pinMode(pulsePin, OUTPUT);      // Pulse watchdog
+  pinMode(enablePin, OUTPUT);     // Enable watchdog
+  digitalWrite(enablePin, HIGH);  // HIGH enables watchdog
 }
 
 void heartBeat()
 {
-  digitalWrite(9, LOW);  // LOW enables watchdog
-  unsigned long currentMillis = millis();
-  if (currentMillis - previousMillisBeat >= intervalBeat) 
-  {
-    previousMillisBeat = currentMillis;
-    if (beatState == LOW) 
-    {
-      beatState = HIGH;
-      //Serial.println(".. BEAT ..");
-    }
-    else 
-    {
-      beatState = LOW;
-    }
-    digitalWrite(8, beatState);
-    digitalWrite(6, beatState);  // Red LED.
-    //tone(8,100,100);
-  }
-
+  beatState = HIGH;
+  digitalWrite(11, beatState);
+  //digitalWrite(0, beatState);  // Red LED
+  //tone(5,1300,10);
+  delay(10);
+  beatState = LOW;
+  digitalWrite(11, beatState);
+  digitalWrite(0, beatState);
+  Serial.print(" ... BEAT ... ");
 }
-
-void beat()
-{
-  digitalWrite(9, LOW);  // LOW enables watchdog
-  if (beatState == LOW) 
-  {
-    beatState = HIGH;
-  }
-  else 
-  {
-    beatState = LOW;
-  }
-  digitalWrite(8, beatState);
-}
-
-
-
-
-
-
-

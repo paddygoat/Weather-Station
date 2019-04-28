@@ -1,27 +1,38 @@
+#include <Arduino.h>
+const int rainPin = A0;
+int rainValuex1 = 0;
 
-
-#include "Mega.h"
-
-
-float autoXMax = -1000.0;
-float autoXMin =  1000.0;
-float autoYMax = -1000.0;
-float autoYMin =  1000.0;
-//unsigned long compassCount = 0;
-
-float compass; // orientation of the platform
-
-
-void initCompass()
+void setupRain()
 {
+  analogWrite(A0,500);
+  delay(500);
+  int rainReading = analogRead(rainPin);       // If rain detected, capacitor discharges.
+  //Serial.println("");
+  Serial.print("rainReading 0: ");  Serial.println(rainReading);
+}
 
-
-} // initCompass
-
-
-void readCompass()
+void rainDetect()
 {
+    int rainReading = analogRead(rainPin);       // If rain detected, capacitor discharges.
+    //Serial.println("");
+    Serial.print("rainReading 1: ");  Serial.print(rainReading);
+    if (rainReading < 100)
+    {
+      rainValuex1++;
+    }
+    delay(100);
+    analogWrite(A0,500);                         // Charge the capacitor.
+    rainReading = analogRead(rainPin);
+    Serial.print("    rainReading 2: ");  Serial.print(rainReading);
+    Serial.print("    rainValuex1: ");  Serial.println(rainValuex1);
+    Serial.println("");
 
-
-} // readCompass
-
+    if(  rainValuex1 >0 )
+    {
+      digitalWrite(1,HIGH);      // Yellow LED
+    }
+    else
+    {
+      digitalWrite(1,LOW);      // Yellow LED
+    }
+}
