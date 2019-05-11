@@ -28,14 +28,15 @@ const int powerPin = 10;                // Powers the wind vane.
 unsigned int p=0;
 float outputValue =0;
 //float maxSensorValue =1020.0001;
-float maxSensorValue =445.0001;
+float maxSensorValue =460.0;
 float minSensorValue = 0.0001;
 int finalDirection=0;
 float rawDirection =0;
 unsigned int c=0;
 unsigned int modeSize=0;
 int vaneValue =0;
-float hours = 0;
+int analogReadMax =0;
+int analogReadMin =1000;
 
 void setupWindVane()
 {
@@ -54,30 +55,7 @@ void windVane()
   p++;
   
   int ledStateRed = LOW;
-  digitalWrite(powerPin, HIGH);                    // Powers the wind vane potentiometer.
-  while (g<2)                               // Get 2 quick readings.
-  {
-    unsigned long currentMillis = millis();
-    if (currentMillis - previousMillisRed >= intervalRed) 
-    {
-      previousMillisRed = currentMillis;
-      if (ledStateRed == LOW)
-      {
-        ledStateRed = HIGH;
-      }
-      else 
-      {
-        ledStateRed = LOW;
-      }
-    g++;  
-    digitalWrite(powerPin, HIGH);                 // Powers the wind vane potentiometer.
-    //delay(10);
-    // read the analog in value:
-    adc0 = analogRead(analogInPin);
-    //delay(100);
-    }                                                 // End of Millis timer.
-  }                                                   // End of while loop.
-    
+  digitalWrite(powerPin, HIGH);                    // Powers the wind vane potentiometer.  
     sensorValue=0;
     sensorValue2=0;
     sensorValue3=0; 
@@ -89,48 +67,43 @@ void windVane()
   //previousMillisRed =  millis();
   ledStateRed = LOW;
   
-  while (g<5)                                // Get 10 quick readings. Must be an odd number or big could equal small. This while loop currently interferes just like 'delay' would!
+  while (g<3)                                // Get 10 quick readings. Must be an odd number or big could equal small. This while loop currently interferes just like 'delay' would!
     {
-    unsigned long currentMillis = millis();
-    if (currentMillis - previousMillisRed >= intervalRed) 
-    {
-      previousMillisRed = currentMillis;
-      if (ledStateRed == LOW)
-      {
-       ledStateRed = HIGH;
-      }
-      else 
-      {
-        ledStateRed = LOW;
-      }
-      g++;  
-      // read the analog in value:
-      adc0 = analogRead(analogInPin);
-      sensorValue2 = sensorValue2 + adc0;
-
+        g++;  
+        // read the analog in value:
+        delay(20);
+        adc0 = analogRead(analogInPin);
+        sensorValue2 = sensorValue2 + adc0;
+        if (adc0 > analogReadMax)
+        {
+          analogReadMax = adc0;
+        }
+        if (adc0 < analogReadMin)
+        {
+          analogReadMin = adc0;
+        }
 // This bit of code below takes care of the instance where the weather vane is hovering around north (hovering zone) and picking up big values and small values in the same batch of 11:
 // Total range is about 0 to 24000.
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////                                                              
-     if (adc0 < 100)
-      {
-       sensorValue4 = sensorValue4 + adc0;
-       small++;
-      }
-     if (adc0 >= 100)                                    
-      {
-       sensorValue3 = sensorValue3 + adc0;
-       big++;                                          
-      }
-     if (big > small)
-      {
-       sensorValue = sensorValue3 / big;     
-      }
-     if (big < small)
-      {
-       sensorValue = sensorValue4 / small;
-      }
+       if (adc0 < 100)
+       {
+         sensorValue4 = sensorValue4 + adc0;
+         small++;
+       }
+       if (adc0 >= 100)                                    
+       {
+         sensorValue3 = sensorValue3 + adc0;
+         big++;                                          
+       }
+       if (big > small)
+       {
+         sensorValue = sensorValue3 / big;     
+       }
+       if (big < small)
+       {
+         sensorValue = sensorValue4 / small;
+       }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
-    }                                                 // End of Millis timer.
   }                                                   // End of while loop.
   digitalWrite(powerPin, LOW);                               // Powers down the wind vane potentiometer.
   if (sensorValue == 0)                                 
@@ -236,20 +209,24 @@ if (finalDirection==359 || finalDirection==360 || finalDirection==1)
   //Serial.println("");
   Serial.print("Wind vane analogue Read = ");
   Serial.print(sensorValue);
+  Serial.print("\t analogue Read max = ");
+  Serial.print(analogReadMax);
+  Serial.print("\t analogue Read min = ");
+  Serial.print(analogReadMin);
   //Serial.print("\t output = ");
   //Serial.print(outputValue,2);
   //Serial.print("\t adjusted output = ");
   //Serial.print(rawDirection,2);
-  //Serial.print("\t Max sensor value = ");
-  //Serial.print(maxSensorValue,2);
+  Serial.print("\t Max sensor value = ");
+  Serial.print(maxSensorValue,2);
   //Serial.print("\t Min sensor value = ");
   //Serial.print(minSensorValue,2);
   //Serial.print("\t p = ");
   //Serial.println(p);  
 
-  Serial.print("  Final Direction =  ");
+  Serial.print("\t Mode Direction =  ");
   Serial.print(finalDirection);
-  Serial.print("  Mode size = ");
+  Serial.print(" degrees     Mode size = ");
   Serial.print(modeSize);
   Serial.print("\t Degree = ");
   Serial.print(degree);
@@ -261,9 +238,8 @@ if (finalDirection==359 || finalDirection==360 || finalDirection==1)
   //Serial.print("  Big = ");
   //Serial.print(big);
   double currentMillis = millis();
-  hours = currentMillis/3600000;
-  Serial.print("  Hours = ");
-  Serial.println(hours,3);
+  //hours = currentMillis/3600000;
+  //Serial.print("  Hours = ");
+  //Serial.println(hours,3);
 
 }
-

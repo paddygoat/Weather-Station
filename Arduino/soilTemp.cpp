@@ -65,11 +65,9 @@ void setupSoilTemp()
 
 void soilTempFunction()
 {
-    tone(3,1000,100);
     sensors.requestTemperatures(); // Send the command to get temperatures
     printTemperature(soilThermometer);
-} // loop
-// function to print a device address
+}
 
 
 

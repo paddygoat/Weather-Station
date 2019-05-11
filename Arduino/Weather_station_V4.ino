@@ -14,6 +14,7 @@
 #include "rain.h"
 #include <Adafruit_SleepyDog.h>
 
+float hours = 0;
 int count = 0;
 unsigned long previousMillisSensors = 0;
 const long intervalSensors = 300000;              // Interval to take reading on all sensors other than wind.
@@ -40,14 +41,17 @@ unsigned long currentMillis = 0;
 void setup()
 {
   setupHeartBeat();
-  setupLEDs();
   pauseWithBeats();                       // Pause allows new code to be uploaded without deep sleep fouling up the upload.
   
   Serial.begin(96000);
   Serial.println("Starting ..... ");
-
+  heartBeat();
+  
   setupSoilTemp();
   setupRain();
+  
+
+  
   soilTempFunction();
   Serial.print("soilTemp = ");Serial.println(soilTemp);
 
@@ -70,7 +74,17 @@ void setup()
   Serial.println(" ..... All is good ..... Continuing  .....");
   Serial.println(" ");
   digitalWrite(watchdogEnablePin, HIGH);  // HIGH enables watchdog.
-
+  // Some delays for the watchdog timing:
+  Serial.println("0");
+  delay(1000);
+  Serial.println("1");
+  delay(1000);
+  Serial.println("2");
+  delay(1000);
+  Serial.println("3");
+  delay(1000);
+  //Serial.println("4");
+  //delay(1000);
 } // setup
 
 void loop()
@@ -81,12 +95,16 @@ void loop()
   
   windSpeed();
   windVane();
-  rainDetect();
 
+  rainDetect();
+  flashRedLED();       // Charges capacitor for raingage
+  
+///////////////////////////////////////////////////////////////////////////
   // Uncomment one of the below:
-    int sleepMS = Watchdog.sleep(6000); // This will disable Serial console.
-    //delay(6000);
-    
+    //int sleepMS = Watchdog.sleep(6000); // This will disable Serial console.
+    delay(6000);   // Should be 6000.
+//////////////////////////////////////////////////////////////////////////
+
   flashBuiltinLED();
   
   if ( z==0)
@@ -97,6 +115,8 @@ void loop()
 
   if (count > 60)        // Need relatively low number of samples of temperatures, humidity etc as they dont change quickly.
   {
+    hours = hours + 0.083;
+    Serial.print("Hours:  ");Serial.println(hours,3);
     count = 0;
     Serial.print("..1..");
     Serial.println("..2..");
@@ -106,15 +126,13 @@ void loop()
 
     Serial.print("..3..");
     soil();            // Read soil moisture.
-    moisture = moisture - (moisture*soilTemp*0.0050);  // Calibrate moisture sensor against temperatures. Formerly 0.0065.
+    moisture = moisture - (moisture*soilTemp*0.0040);  // Calibrate moisture sensor against temperatures. Formerly 0.0065.
     Serial.print("..4..");
 
     //delay(1000);
 
     BME280Readings();
-    //digitalWrite(watchdogEnablePin, LOW);  // Reset the watchdog by trurning in off and on again
-    //Serial.print(".. Reset Watchdog again ..");
-    //delay(6000);
+
     heartBeat(); 
     Serial.print("..5..");
     batteryVolts();
@@ -153,14 +171,12 @@ void loop()
       flashBuiltinLED();
       Serial.println("Call back Heart beat");
     }
-    digitalWrite(0, HIGH);  // Red LED.
     currentMillis = millis();
     onReceive(LoRa.parsePacket());
     callBackListeningStatus = 1;
     sleepStatus = 0;
     slowPrint();                                                     // Prints "... Listening ..." every so often.
   }
-  digitalWrite(0, LOW);  // Red LED.
   callBackListeningStatus = 0;
   //delay(3000);
 

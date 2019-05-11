@@ -24,7 +24,7 @@ void flashYellowLED()
 void flashRedLED()
 {  
   digitalWrite(0,HIGH);
-  delay(20);
+  delay(50);
   digitalWrite(0,LOW);
 }
 void flashBuiltinLED()

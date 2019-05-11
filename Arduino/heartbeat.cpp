@@ -14,11 +14,9 @@ void heartBeat()
 {
   beatState = HIGH;
   digitalWrite(11, beatState);
-  //digitalWrite(0, beatState);  // Red LED
-  //tone(5,1300,10);
   delay(10);
   beatState = LOW;
   digitalWrite(11, beatState);
-  digitalWrite(0, beatState);
+  Serial.println("");
   Serial.print(" ... BEAT ... ");
 }
