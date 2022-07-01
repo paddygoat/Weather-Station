@@ -50,10 +50,13 @@ int k = 0;
 bool started = false;
 
 String tempStr;
+char tempChar[60];
 String moisStr;
+char moisChar[60];
 float tempFloat = 999.0;
 int moisInt;
 int count = 1000;
+int detection = false;
 
 void logo(){
   Heltec.display->clear();
@@ -87,65 +90,162 @@ void LoRaData()
   Heltec.display->display();
 }
 
+String glasshouseHeader = "#<~";
+char header[50];
+char threeDArray[2][6][50];
+int glasshouse = 0;
+
+char parseIncoming(int packetSize)
+{
+  // Serial.print("inChar: ");Serial.println(inChar);
+  glasshouseHeader.toCharArray(header, 50);
+  if ((inChar[0]==header[0])&&(inChar[1]==header[1])&&(inChar[2]==header[2]))
+  {
+    glasshouse = 1;
+  }
+  if (glasshouse == 1)
+  {
+    int digit = 0;
+    int space = 0;
+    int period = 0;
+    int brackets = 0;
+    int colons = 0;
+    int underScore = 0;
+    // Serial.println();
+    // Serial.println("Correct header was detected.");
+
+    // Serial.println("parse begin:    ");
+    int i = 4;
+    int j = 0;
+    int k = 0;
+    int iAdjust = 4;
+    int underScoreCount = 0;
+    
+    for (i = 4 ; i < (packetSize); i++) 
+    {
+      period = 0;
+      brackets = 0;
+      colons = 0;
+      underScore = 0;
+      space = isSpace(inChar[i]);
+      digit = isdigit(inChar[i]);
+      if (inChar[i]=='.'){period = 1;}
+      if (inChar[i]=='_'){underScore = 1;}
+      if ((inChar[i]=='[')||(inChar[i]==']')){brackets = 1;}
+      if ((inChar[i]==':')||(inChar[i]==';')){colons = 1;}
+
+      if (underScore == 1)
+      {
+        // Serial.print("underScore_i: ");Serial.println(i);
+        underScoreCount++;
+        iAdjust = i+1;
+      }
+
+      if ((digit == 0)&&(period == 0))
+      {
+        if (underScoreCount == 0){j=0;}
+        if (underScoreCount == 2){j=1;}
+        if (underScoreCount == 4){j=2;}
+        if (underScore == 0)
+        {
+          threeDArray[k][j][i-iAdjust] = inChar[i];
+        }
+      }
+      
+      if ((digit == 1)||(period == 1))
+      {
+        if (underScoreCount == 1){j=0;}
+        if (underScoreCount == 3){j=1;}
+        if (underScoreCount == 5){j=2;}
+        if (underScore == 0)
+        {
+          threeDArray[k+1][j][i-iAdjust] = inChar[i];
+        }
+      }
+    }
+    return threeDArray[2][6][50];
+    Serial.print("underScoreCount: ");Serial.println(underScoreCount);
+  }
+}
 void cbk(int packetSize) 
 {
   memset (inChar, 0, sizeof(inChar));
-  // digitalWrite(12, HIGH-digitalRead(12));   // toggle the led
-  // digitalWrite(14, HIGH-digitalRead(14));   // toggle the led
-  // digitalWrite(16, HIGH-digitalRead(16));   // toggle the led
-  // received a packet
-  // Serial.print("Received packet: '");
-
-  // read packet header bytes:
-  // int recipient = LoRa.read();          // recipient address
-  // byte sender = LoRa.read();            // sender address
-  // byte incomingMsgId = LoRa.read();     // incoming msg ID
-  // byte incomingLength = LoRa.read();    // incoming msg length
-  // byte crc = LoRa.read();    // incoming crc value
-
   // read packet
-  j = 0;
-  k = 0;
   for (int i = 0; i < (packetSize); i++) 
   {
     inChar[i] = (char)LoRa.read();
-    // Serial.print(inChar[i]);
-    // Look for the first gap:
-    if (inChar[i] == ' ')
-    {
-      // Serial.print("i: ");Serial.print(i);Serial.print(" ");
-      if (j == 0)
-      {
-        j = i;
-      }
-      else
-      {
-        k = i;
-      }
-    }
   }
-  // Serial.println("");
-  inChar_temp[0] = inChar[j+1];
-  inChar_temp[1] = inChar[j+2];
-  inChar_temp[2] = inChar[j+3];
-  inChar_temp[3] = inChar[j+4];
-  inChar_temp[4] = inChar[j+5];
-  inChar_mois[0] = inChar[k+1];
-  inChar_mois[1] = inChar[k+2];
-  inChar_mois[2] = inChar[k+3];
-  inChar_mois[3] = inChar[k+4];
-  inChar_mois[4] = inChar[k+5];
-  // Serial.print(" inChar_temp: ");Serial.print(inChar_temp);Serial.print(" ");
-  String tempStr = inChar_temp;
-  String moisStr = inChar_mois;
-  tempInt = tempStr.toInt();
+  threeDArray[2][6][50] = parseIncoming(packetSize);
 
-  tempFloat = tempStr.toFloat();
-  moisInt = moisStr.toInt();
+/*
+  Serial.print("threeDArray[0][0][i]: ");
+  for (int i = 0; i < (packetSize); i++) 
+  {
+    Serial.print(".");
+    Serial.print(threeDArray[0][0][i]);
+  }
+  Serial.println();
+  Serial.print("threeDArray[0][1][i]: ");
+  for (int i = 0; i < (packetSize); i++) 
+  {
+    // threeDArray[0][1][i] = threeDArray[0][1][i+12];
+    Serial.print(".");
+    Serial.print(threeDArray[0][1][i]);
+  }
+  Serial.println();
+  Serial.print("threeDArray[0][2][i]: ");
+  for (int i = 0; i < (packetSize); i++) 
+  {
+    // threeDArray[0][2][i] = threeDArray[0][2][i+23];
+    Serial.print(".");
+    Serial.print(threeDArray[0][2][i]);
+  }
+  Serial.println();
+
+  Serial.print("threeDArray[1][0][i]: ");
+  for (int i = 0; i < (packetSize); i++) 
+  {
+    Serial.print(".");
+    // threeDArray[1][0][i] = threeDArray[1][0][i+6];
+    Serial.print(threeDArray[1][0][i]);
+  }
+  Serial.println();
+  Serial.print("threeDArray[1][1][i]: ");
+  for (int i = 0; i < (packetSize); i++) 
+  {
+    Serial.print(".");
+    // threeDArray[1][1][i] = threeDArray[1][1][i+18];
+    Serial.print(threeDArray[1][1][i]);
+  }
+  Serial.println();
+  Serial.print("threeDArray[1][2][i]: ");
+  for (int i = 0; i < (packetSize); i++) 
+  {
+    // threeDArray[1][2][i] = threeDArray[1][2][i+30];
+    Serial.print(".");
+    Serial.print(threeDArray[1][2][i]);
+  }
+  Serial.println();Serial.println();
+*/
+  String tempStr = threeDArray[1][0];  // Note that the last dimension is not given !!
+  String moisStr = threeDArray[1][1];
+
+  // Serial.print("tempStr: ");Serial.println(tempStr);
+  
+  if (detection != true)
+  {
+    tempInt = tempStr.toInt();
+    tempFloat = tempStr.toFloat();
+    moisInt = moisStr.toInt();
+  }
   // Serial.print(" tempFloat: ");Serial.print(tempFloat);Serial.print(" ");
   float tempFloatCubed = tempFloat*tempFloat*tempFloat*tempFloat/450;
-  Serial.print("tempFloat: ");Serial.print(tempFloat); // Serial.print(", ");
-  Serial.print(" moisInt: ");Serial.println(moisInt); // Serial.print(", ");
+  if (detection != true)
+  {
+    Serial.print("");
+    Serial.print("tempFloat: ");Serial.print(tempFloat); // Serial.print(", ");
+    Serial.print(" moisInt: ");Serial.println(moisInt); // Serial.print(", ");
+  }
   // Serial.println("");
   // Serial.print(" tempFloatCubed: ");Serial.print(tempFloatCubed);Serial.print("");
   if (tempFloatCubed < 100)
@@ -155,23 +255,7 @@ void cbk(int packetSize)
   // tone(4, int(tempFloatCubed), 200);
   delay(200);
   
-  // Serial.print("'");
-  // print RSSI of packet
-  // Serial.print(" with RSSI ");
-  // Serial.println(LoRa.packetRssi());
-  // Serial.println("Message recipient: " + String(recipient));
-  // Serial.println("Message sender: " + String(sender));
-  // Serial.println(" Message ID: " + String(incomingMsgId));
-  // Serial.println("Message incomingLength: " + String(incomingLength));
-
-
-  // str_msg.data = inChar;
-  // char hello[13] = "hello world!";
-  // str_msg.data = hello;
-  // chatter.publish( &str_msg );
-  // nh.spinOnce();
   started = true;
-  // LoRaData();
   buzz_high();
   display_results();
 }
@@ -180,7 +264,6 @@ void setup()
 {
   pinMode(32, OUTPUT);
   buzz();
-   //WIFI Kit series V1 not support Vext control
   Heltec.begin(true /*DisplayEnable Enable*/, true /*Heltec.Heltec.Heltec.LoRa Disable*/, true /*Serial Enable*/, true /*PABOOST Enable*/, BAND /*long BAND*/);
   LoRa.setSpreadingFactor(spreading);           // ranges from 6-12,default 7 see API docs
   LoRa.setSyncWord(0x34);
@@ -212,6 +295,7 @@ void setup()
   digitalWrite(red_pin,LOW);
   delay(5000);
   //LoRa.onReceive(cbk);
+  Serial.println();
   LoRa.receive();
 }
 
