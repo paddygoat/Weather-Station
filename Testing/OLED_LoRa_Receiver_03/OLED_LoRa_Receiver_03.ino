@@ -316,11 +316,9 @@ void check_serial_exists()
         // Serial.print(dataToSendArray[i][j]);
         Serial.println(data_to_send_something);
         // Serial.println("");
-        digitalWrite(green_pin, !digitalRead(green_pin));
-        // digitalWrite(green_pin,HIGH);
-        // delay(25);
-        // digitalWrite(green_pin,LOW);
-        delay(1000);
+        digitalWrite(pink_pin, !digitalRead(pink_pin));
+        digitalWrite(blue_pin, !digitalRead(pink_pin));
+        delay(300); 
       }
       memset (dataToSendArray, 0, sizeof(dataToSendArray));
       serial_unavailable_count = 0;

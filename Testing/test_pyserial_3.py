@@ -13,6 +13,7 @@ import random
 import serial
 import sys
 import math
+import time
 
 end = "\n"
 RED = "\x1b[1;31m"
@@ -45,18 +46,20 @@ xs = [] # time index
 yt = [] # temperature values
 ym = [] # moisture values
 yc = [] # detection confidence values
-ycar = []
+yCar = []
 yPerson = []
 threeDArray = np.zeros((2, 8, 10), dtype='object')       # fill array with zeros.
 # threeDArray = np.select([threeDArray == 0], [""], threeDArray)   # get rid of the zeros.
-counter =[10]
-counter[0] = 0
+counter = [10]
+counter[0] = 1
+delta_time = [2,0]
+
 
 # This function is called periodically from FuncAnimation
-def animate(i, xs, yt, ym, yc, ycar, yPerson, threeDArray, counter):
+def animate(i, xs, yt, ym, yc, yCar, yPerson, threeDArray, counter, delta_time):
     # Make a call back:
     # ser.write(b'S\n')
-
+    start_time = time.time()
     arrayExists = False
     try:
         threeDArray
@@ -209,7 +212,7 @@ def animate(i, xs, yt, ym, yc, ycar, yPerson, threeDArray, counter):
         if headerGlassTest == True:
             data_y_temp = float(temp)
             data_y_mois = float(mois)
-            data_y_mois = abs(data_y_mois - 4094)
+            data_y_mois = abs(4096 -data_y_mois)
             data_y_mois = math.log(data_y_mois)*2
             data_y_mois = 20 - round(data_y_mois,2)
 
@@ -228,7 +231,7 @@ def animate(i, xs, yt, ym, yc, ycar, yPerson, threeDArray, counter):
             yt.append(data_y_temp)
             ym.append(data_y_mois)
             yc.append(data_y_Conf)
-            ycar.append(label_car)
+            yCar.append(label_car)
             yPerson.append(label_person)
         xs = range(len(yt))
         # data_y_mois = 20 - round((math.log(abs(data_y_mois) - 4095)) *2,2)
@@ -245,20 +248,21 @@ def animate(i, xs, yt, ym, yc, ycar, yPerson, threeDArray, counter):
         # print("yt: ",yt)
         # print("ym: ",ym)
 
-        # Limit x and y lists to 2000 items
-        xs = xs[-2000:]
-        yt = yt[-2000:]
-        ym = ym[-2000:]
-        yc = yc[-2000:]
+        # Limit x and y lists to 2880 items (48 hours)
+        xs = xs[-2880:]
+        yt = yt[-2880:]
+        ym = ym[-2880:]
+        yc = yc[-2880:]
+        yCar = yCar[-2880:]
+        yPerson = yPerson[-2880:]
 
         # Draw x and y lists
         ax.clear()
         ax.plot(xs, yt, label="Temperature")
         ax.plot(xs, ym, label="Moisture")
         ax.plot(xs, yc, label="Confidence")
-        ax.plot(xs, ycar, label="Car detect")
+        ax.plot(xs, yCar, label="Car detect")
         ax.plot(xs, yPerson, label="Person detect")
-        # ax.plot(xs, rs, label="Theoretical Probability")
 
         # Format plot
         plt.xticks(rotation=45, ha='right')
@@ -272,12 +276,17 @@ def animate(i, xs, yt, ym, yc, ycar, yPerson, threeDArray, counter):
 
     # Make a call back:
     ser.write(b'D\n')
-
-    counter[0] = counter[0] + 1
-    print("Counter[0]:  ",counter[0])
+    delta_time[0] = round(time.time() - start_time, 5)
+    # print("delta_time[0]: ",delta_time[0])
+    if delta_time[0] < 1.0:
+        delta_time[1] = delta_time[0] + delta_time[1]
+        # print("--- %s seconds ---" % round(time.time() - start_time, 5), " Counter[0]:  ",counter[0])
+        print("Average process time = ",round(delta_time[1]/counter[0],5), " Counter[0]:  ",counter[0])
+        counter[0] = counter[0] + 1
+        # print("Counter[0]:  ",counter[0])
 
 # Set up plot to call animate() function periodically
-ani = animation.FuncAnimation(fig, animate, fargs=(xs, yt, ym, yc, ycar, yPerson, threeDArray, counter), interval=50)
+ani = animation.FuncAnimation(fig, animate, fargs=(xs, yt, ym, yc, yCar, yPerson, threeDArray, counter, delta_time), interval=50)
 plt.show()
 
 
